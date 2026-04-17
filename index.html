@@ -121,6 +121,14 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .setup-banner input{border-color:#c49040;margin-bottom:6px}
 .setup-banner input:focus{border-color:var(--amber)}
 .code-pill{background:#fff;border:1px solid #c49040;border-radius:4px;padding:1px 7px;font-size:12px;direction:ltr;display:inline-block;font-family:monospace}
+.course-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.course-row input{margin-bottom:0;flex:1}
+.drag-handle{cursor:grab;color:var(--text3);font-size:16px;flex-shrink:0;user-select:none;padding:0 2px}
+.drag-handle:active{cursor:grabbing}
+.course-row.dragging{opacity:.4;background:var(--bg);border-radius:6px}
+.course-row.drag-over{border-top:2px solid var(--blue)}
+.select-edit-btn{background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:2px 6px;font-family:inherit;border-radius:4px;white-space:nowrap}
+.select-edit-btn:hover{background:var(--bg);color:var(--blue)}
 </style>
 </head>
 <body>
@@ -128,10 +136,22 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="header">
   <div class="header-left">
     <div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span id="app-title-display" class="header-title" onclick="startEditTitle()" title="اضغط لتعديل الاسم">🎓 أداة الفصل الدراسي</span>
-        <input type="text" id="app-title-input" class="header-title-input" style="display:none" onblur="saveTitle()" onkeydown="titleKeydown(event)" maxlength="60"/>
-        <button class="edit-title-btn" onclick="startEditTitle()" title="تعديل اسم التطبيق">✏️</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <!-- Logo -->
+        <div id="logo-wrap" style="flex-shrink:0">
+          <img id="app-logo" src="" alt="" style="display:none;width:38px;height:38px;border-radius:8px;object-fit:cover;cursor:pointer" onclick="triggerLogoUpload()" title="اضغط لتغيير الشعار"/>
+          <div id="logo-placeholder" onclick="triggerLogoUpload()" title="أضف شعاراً" style="width:38px;height:38px;border-radius:8px;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg);color:var(--text3);font-size:18px;flex-shrink:0;transition:border-color .2s">+</div>
+          <input type="file" id="logo-input" accept="image/*" style="display:none" onchange="handleLogoUpload(event)"/>
+        </div>
+        <!-- Title -->
+        <div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span id="app-title-display" class="header-title" onclick="startEditTitle()" title="اضغط لتعديل الاسم">أداة الفصل الدراسي</span>
+            <input type="text" id="app-title-input" class="header-title-input" style="display:none" onblur="saveTitle()" onkeydown="titleKeydown(event)" maxlength="60"/>
+            <button class="edit-title-btn" onclick="startEditTitle()" title="تعديل الاسم">✏️</button>
+          </div>
+          <div class="header-date" id="header-date"></div>
+        </div>
       </div>
       <div class="header-date" id="header-date"></div>
     </div>
@@ -206,12 +226,11 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <input type="text" id="session-title" placeholder="مثال: المحاضرة 5 — المشتقات"/>
       </div>
       <div class="form-group">
-        <label class="form-label">المادة الدراسية</label>
-        <select id="session-course">
-          <option>الرياضيات 101</option><option>الفيزياء 201</option>
-          <option>علوم الحاسوب 301</option><option>الكيمياء 102</option>
-          <option>الأحياء 101</option><option>اللغة العربية</option><option>اللغة الإنجليزية</option>
-        </select>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <button class="select-edit-btn" onclick="openCoursesModal()" title="تعديل قائمة المواد">✏️ تعديل المواد</button>
+          <label class="form-label" style="margin-bottom:0">المادة الدراسية</label>
+        </div>
+        <select id="session-course"></select>
       </div>
       <div class="form-group">
         <label class="form-label">ملاحظات (اختياري)</label>
@@ -327,6 +346,23 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   </div>
 </div>
 
+<!-- COURSES MODAL -->
+<div class="modal-overlay" id="courses-modal" onclick="handleOverlay(event,'courses-modal')">
+  <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <button class="btn btn-primary btn-sm" onclick="saveCourses()">حفظ المواد</button>
+      <div class="modal-title">📚 تعديل المواد الدراسية</div>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;text-align:right">يمكنك إضافة أو حذف أو إعادة ترتيب المواد بالسحب</div>
+    <div id="courses-list"></div>
+    <div class="divider"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <button class="btn btn-green btn-sm" onclick="addCourseRow()">+ إضافة مادة</button>
+      <button class="btn btn-sm" onclick="closeModal('courses-modal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK -->
@@ -335,6 +371,177 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <script>
+// ── Courses ───────────────────────────────────────
+var COURSES_KEY = 'app_courses';
+var DEFAULT_COURSES = [
+  'الرياضيات 101','الفيزياء 201','علوم الحاسوب 301',
+  'الكيمياء 102','الأحياء 101','اللغة العربية','اللغة الإنجليزية'
+];
+
+function loadCourses() {
+  var saved = localStorage.getItem(COURSES_KEY);
+  var courses = saved ? JSON.parse(saved) : DEFAULT_COURSES;
+  renderCourseSelect(courses);
+}
+
+function renderCourseSelect(courses) {
+  var sel = document.getElementById('session-course');
+  var prev = sel.value;
+  sel.innerHTML = '';
+  courses.forEach(function(c) {
+    var opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    if (c === prev) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function openCoursesModal() {
+  var saved = localStorage.getItem(COURSES_KEY);
+  var courses = saved ? JSON.parse(saved) : DEFAULT_COURSES;
+  var list = document.getElementById('courses-list');
+  list.innerHTML = '';
+  courses.forEach(function(c, i) { addCourseRowWith(c, i); });
+  document.getElementById('courses-modal').classList.add('open');
+}
+
+var dragSrc = null;
+
+function addCourseRowWith(value, idx) {
+  var list = document.getElementById('courses-list');
+  var row = document.createElement('div');
+  row.className = 'course-row';
+  row.draggable = true;
+  row.dataset.idx = idx;
+
+  var handle = document.createElement('span');
+  handle.className = 'drag-handle';
+  handle.textContent = '⠿';
+  handle.title = 'اسحب لإعادة الترتيب';
+
+  var num = document.createElement('span');
+  num.className = 'edit-num';
+  num.textContent = list.children.length + 1;
+
+  var inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = value || '';
+  inp.placeholder = 'اسم المادة...';
+
+  var del = document.createElement('button');
+  del.textContent = 'حذف';
+  del.style.cssText = 'background:var(--red-bg);border:1px solid #d96060;color:var(--red-text);border-radius:5px;cursor:pointer;padding:5px 10px;font-size:12px;font-family:inherit;white-space:nowrap;appearance:none';
+  del.onclick = function() { row.remove(); renumberCourseRows(); };
+
+  row.appendChild(handle);
+  row.appendChild(num);
+  row.appendChild(inp);
+  row.appendChild(del);
+  list.appendChild(row);
+
+  // Drag events
+  row.addEventListener('dragstart', function(e) {
+    dragSrc = row;
+    row.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  row.addEventListener('dragend', function() {
+    row.classList.remove('dragging');
+    document.querySelectorAll('.course-row').forEach(function(r){ r.classList.remove('drag-over'); });
+  });
+  row.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    if (dragSrc && dragSrc !== row) row.classList.add('drag-over');
+  });
+  row.addEventListener('dragleave', function() { row.classList.remove('drag-over'); });
+  row.addEventListener('drop', function(e) {
+    e.preventDefault();
+    row.classList.remove('drag-over');
+    if (dragSrc && dragSrc !== row) {
+      var list = document.getElementById('courses-list');
+      var rows = Array.from(list.children);
+      var srcIdx = rows.indexOf(dragSrc);
+      var tgtIdx = rows.indexOf(row);
+      if (srcIdx < tgtIdx) list.insertBefore(dragSrc, row.nextSibling);
+      else list.insertBefore(dragSrc, row);
+      renumberCourseRows();
+    }
+  });
+}
+
+function addCourseRow() {
+  addCourseRowWith('', document.getElementById('courses-list').children.length);
+  var inputs = document.querySelectorAll('#courses-list input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+function renumberCourseRows() {
+  var rows = document.querySelectorAll('#courses-list .course-row');
+  rows.forEach(function(r, i) {
+    var num = r.querySelector('.edit-num');
+    if (num) num.textContent = i + 1;
+  });
+}
+
+function saveCourses() {
+  var inputs = document.querySelectorAll('#courses-list input');
+  var courses = [];
+  inputs.forEach(function(inp) {
+    var val = inp.value.trim();
+    if (val) courses.push(val);
+  });
+  if (courses.length === 0) { showToast('⚠️ أضف مادة واحدة على الأقل'); return; }
+  localStorage.setItem(COURSES_KEY, JSON.stringify(courses));
+  renderCourseSelect(courses);
+  closeModal('courses-modal');
+  showToast('✅ تم حفظ المواد الدراسية');
+}
+
+// ── Logo ─────────────────────────────────────────
+var LOGO_KEY = 'app_logo';
+
+function loadLogo() {
+  var saved = localStorage.getItem(LOGO_KEY);
+  if (saved) showLogo(saved);
+}
+
+function triggerLogoUpload() {
+  document.getElementById('logo-input').click();
+}
+
+function handleLogoUpload(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('⚠️ يرجى اختيار صورة'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('⚠️ الصورة أكبر من 2MB — اختر صورة أصغر'); return; }
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var dataUrl = ev.target.result;
+    localStorage.setItem(LOGO_KEY, dataUrl);
+    showLogo(dataUrl);
+    showToast('✅ تم رفع الشعار');
+  };
+  reader.readAsDataURL(file);
+  // reset input so same file can be re-selected
+  e.target.value = '';
+}
+
+function showLogo(dataUrl) {
+  var img = document.getElementById('app-logo');
+  var placeholder = document.getElementById('logo-placeholder');
+  img.src = dataUrl;
+  img.style.display = 'block';
+  placeholder.style.display = 'none';
+}
+
+function removeLogo() {
+  localStorage.removeItem(LOGO_KEY);
+  document.getElementById('app-logo').style.display = 'none';
+  document.getElementById('app-logo').src = '';
+  document.getElementById('logo-placeholder').style.display = 'flex';
+  showToast('تم حذف الشعار');
+}
+
 // ── App title ────────────────────────────────────
 var APP_TITLE_KEY = 'app_title';
 
@@ -344,7 +551,7 @@ function loadAppTitle() {
 }
 
 function setTitleDisplay(title) {
-  document.getElementById('app-title-display').textContent = '🎓 ' + title;
+  document.getElementById('app-title-display').textContent = title;
   document.title = title;
 }
 
@@ -774,14 +981,22 @@ function switchTab(name,el){
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 function handleOverlay(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
-document.addEventListener('keydown',function(e){ if(e.key==='Escape'||e.keyCode===27){ closeVidModal(); closeModal('edit-modal'); closeModal('rename-modal'); closeModal('help-modal'); } });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'||e.keyCode===27){ closeVidModal(); closeModal('edit-modal'); closeModal('rename-modal'); closeModal('help-modal'); closeModal('courses-modal'); } });
 var _tt=null;
 function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; if(_tt) clearTimeout(_tt); _tt=setTimeout(function(){t.style.display='none';},3500); }
 
 // ── Init ──────────────────────────────────────────
+loadCourses();
 loadAppTitle();
+loadLogo();
 renderStudents();
 loadFirebaseConfig();
+
+// Right-click on logo to remove it
+document.getElementById('app-logo').addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  if (confirm('حذف الشعار الحالي؟')) removeLogo();
+});
 </script>
 </body>
 </html>
