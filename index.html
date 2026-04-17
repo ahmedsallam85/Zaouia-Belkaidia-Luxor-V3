@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>أداة الفصل الدراسي</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+  :root {
+    --bg:#f5f4f0; --surface:#fff; --border:#e2e0d8; --border2:#ccc9be;
+    --text:#1a1917; --text2:#6b6860; --text3:#9c9a93;
+    --blue:#1a5fa8; --blue-bg:#e8f0fb; --blue-text:#1a5fa8;
+    --green:#2d6a1f; --green-bg:#e6f2e0; --green-text:#2d6a1f;
+    --red:#9b2828; --red-bg:#fbeaea; --red-text:#9b2828;
+    --amber:#7a4a0a; --amber-bg:#fdf0d8; --amber-text:#7a4a0a;
+    --radius:10px; --radius-sm:6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;position:-webkit-sticky;position:sticky;top:0;z-index:50}
+  .header-title{font-size:18px;font-weight:700;color:var(--text)}
+  .header-date{font-size:12px;color:var(--text2)}
+  .container{max-width:960px;margin:0 auto;padding:24px 20px}
+  .tabs{display:-webkit-box;display:-ms-flexbox;display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:20px}
+  .tab{-webkit-box-flex:1;-ms-flex:1;flex:1;padding:9px;border:none;background:transparent;border-radius:var(--radius-sm);font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;-webkit-transition:all .18s;transition:all .18s}
+  .tab.active{background:var(--text);color:#fff}
+  .tab:not(.active):hover{background:var(--bg);color:var(--text)}
+  .panel{display:none}.panel.active{display:block}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+  .card-title{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.4px;margin-bottom:14px}
+  .metrics{display:-ms-grid;display:grid;-ms-grid-columns:1fr 10px 1fr 10px 1fr;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+  .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+  .metric-val{font-size:28px;font-weight:700;color:var(--text)}
+  .metric-lbl{font-size:12px;color:var(--text2);margin-top:2px}
+  .btn{display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:6px;padding:9px 18px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;-webkit-transition:all .15s;transition:all .15s;white-space:nowrap;-webkit-appearance:none;-moz-appearance:none;appearance:none}
+  .btn:hover{background:var(--bg)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+  .btn-primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .btn-primary:hover{background:#154e8c;border-color:#154e8c}
+  .btn-danger{background:var(--red);border-color:var(--red);color:#fff}
+  .btn-danger:hover{background:#7e1f1f}
+  .btn-green{background:var(--green);border-color:var(--green);color:#fff}
+  .btn-green:hover{background:#235416}
+  .btn-amber{background:var(--amber);border-color:var(--amber);color:#fff}
+  .btn-amber:hover{background:#623b07}
+  .btn-sm{padding:5px 12px;font-size:12px}
+  .form-group{margin-bottom:12px}
+  .form-label{font-size:12px;color:var(--text2);font-weight:500;display:block;margin-bottom:4px}
+  input[type=text],select,textarea{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:13px;background:var(--surface);color:var(--text);direction:rtl;-webkit-transition:border-color .15s;transition:border-color .15s;-webkit-appearance:none;-moz-appearance:none;appearance:none}
+  input[type=text]:focus,select:focus{outline:none;border-color:var(--blue)}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6860' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 10px center;padding-left:30px}
+  .cam-placeholder{width:100%;background:#111;border-radius:var(--radius-sm);display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;gap:12px;color:#888;font-size:14px;padding:60px 20px}
+  #live-video{width:100%;border-radius:var(--radius-sm);background:#000;display:none;max-height:400px;-o-object-fit:cover;object-fit:cover}
+  .rec-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;-ms-flex-wrap:wrap;flex-wrap:wrap;gap:12px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
+  .rec-left{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px}
+  .rec-dot-anim{width:10px;height:10px;border-radius:50%;background:var(--red);display:none;-webkit-animation:blink 1s infinite;animation:blink 1s infinite}
+  @-webkit-keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+  .timer{font-size:24px;font-weight:700;letter-spacing:3px;color:var(--text);direction:ltr;font-variant-numeric:tabular-nums}
+  .rec-status{font-size:13px;color:var(--text2)}
+  .btn-row{display:-webkit-box;display:-ms-flexbox;display:flex;gap:8px;-ms-flex-wrap:wrap;flex-wrap:wrap}
+  .att-toolbar{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;-ms-flex-wrap:wrap;flex-wrap:wrap;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
+  .att-toolbar-label{font-size:13px;color:var(--text2);-webkit-box-flex:1;-ms-flex:1;flex:1;min-width:60px}
+  .student-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+  .student-row:last-child{border-bottom:none}
+  .avatar{width:36px;height:36px;border-radius:50%;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;font-size:11px;font-weight:700;-ms-flex-negative:0;flex-shrink:0}
+  .av-a{background:#EEEDFE;color:#3C3489}.av-b{background:#E1F5EE;color:#085041}.av-c{background:#FAECE7;color:#993C1D}.av-d{background:#E6F1FB;color:#0C447C}.av-e{background:#FAEEDA;color:#633806}.av-f{background:#FBEAF0;color:#72243E}.av-g{background:#EAF3DE;color:#27500A}.av-h{background:#FCEBEB;color:#791F1F}
+  .student-info{-webkit-box-flex:1;-ms-flex:1;flex:1;text-align:right}
+  .student-name{font-size:14px;font-weight:600;color:var(--text)}
+  .student-id{font-size:11px;color:var(--text3)}
+  .att-btns{display:-webkit-box;display:-ms-flexbox;display:flex;gap:6px}
+  .att-btn{padding:5px 12px;border-radius:5px;border:1px solid var(--border2);background:transparent;font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);-webkit-transition:all .12s;transition:all .12s;-webkit-appearance:none;-moz-appearance:none;appearance:none}
+  .att-btn:hover{background:var(--bg)}
+  .att-btn.present{background:var(--green-bg);border-color:#5a9e40;color:var(--green-text)}
+  .att-btn.late{background:var(--amber-bg);border-color:#c49040;color:var(--amber-text)}
+  .att-btn.absent{background:var(--red-bg);border-color:#d96060;color:var(--red-text)}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:4px}
+  .badge-green{background:var(--green-bg);color:var(--green-text)}
+  .badge-red{background:var(--red-bg);color:var(--red-text)}
+  .badge-amber{background:var(--amber-bg);color:var(--amber-text)}
+  .badge-blue{background:var(--blue-bg);color:var(--blue-text)}
+  .progress-bar{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:5px}
+  .progress-fill{height:100%;background:var(--green);border-radius:3px}
+  .vid-item{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+  .vid-item:last-child{border-bottom:none}
+  .vid-thumb{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--blue-bg);display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-ms-flex-negative:0;flex-shrink:0;cursor:pointer}
+  .vid-thumb:hover{background:#c5d9f5}
+  .vid-info{-webkit-box-flex:1;-ms-flex:1;flex:1;text-align:right}
+  .vid-title{font-size:13px;font-weight:600;color:var(--text)}
+  .vid-meta{font-size:11px;color:var(--text2);margin-top:2px}
+  .vid-actions{display:-webkit-box;display:-ms-flexbox;display:flex;gap:6px;-ms-flex-negative:0;flex-shrink:0}
+  .hist-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+  .hist-row:last-child{border-bottom:none}
+  .hist-info{-webkit-box-flex:1;-ms-flex:1;flex:1;text-align:right}
+  .hist-title{font-size:13px;font-weight:600;color:var(--text)}
+  .hist-meta{font-size:11px;color:var(--text2);margin-top:2px}
+  .modal-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.55);z-index:200;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;padding:20px}
+  .modal-overlay.open{display:-webkit-box;display:-ms-flexbox;display:flex}
+  .modal{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
+  .modal-header{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;margin-bottom:18px}
+  .modal-title{font-size:16px;font-weight:700;color:var(--text)}
+  .edit-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;margin-bottom:8px}
+  .edit-row input{margin-bottom:0;-webkit-box-flex:1;-ms-flex:1;flex:1}
+  .edit-num{font-size:12px;color:var(--text3);min-width:22px;text-align:center;-ms-flex-negative:0;flex-shrink:0}
+  #playback-video{width:100%;border-radius:var(--radius-sm);background:#000;max-height:360px;display:block}
+  .video-modal{max-width:680px}
+  .toast{position:fixed;bottom:24px;left:50%;-webkit-transform:translateX(-50%);-ms-transform:translateX(-50%);transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 22px;border-radius:99px;font-size:13px;font-weight:500;display:none;z-index:9999;white-space:nowrap;-webkit-box-shadow:0 4px 20px rgba(0,0,0,.18);box-shadow:0 4px 20px rgba(0,0,0,.18)}
+  .empty{font-size:13px;color:var(--text2);text-align:center;padding:28px}
+  .divider{height:1px;background:var(--border);margin:12px 0}
+  /* browser warning banner */
+  .browser-warn{background:#fdf0d8;border:1px solid #c49040;border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--amber-text);margin-bottom:16px;display:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">🎓 أداة الفصل الدراسي</div>
+    <div class="header-date" id="header-date"></div>
+  </div>
+  <div>
+    <span class="badge badge-blue" id="cam-badge">الكاميرا غير مفعّلة</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div id="browser-warn" class="browser-warn"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('record',this)">📹 التسجيل</button>
+    <button class="tab" onclick="switchTab('attendance',this)">✅ الحضور</button>
+    <button class="tab" onclick="switchTab('history',this)">📋 السجل</button>
+  </div>
+
+  <!-- RECORD -->
+  <div class="panel active" id="panel-record">
+    <div class="card" style="padding:12px">
+      <div id="cam-placeholder" class="cam-placeholder">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect x="2" y="11" width="34" height="26" rx="4" stroke="#555" stroke-width="2"/>
+          <path d="M36 19l10-6v22l-10-6V19z" stroke="#555" stroke-width="2"/>
+          <circle cx="19" cy="24" r="6" stroke="#555" stroke-width="2"/>
+        </svg>
+        <span>اضغط لتفعيل الكاميرا</span>
+        <button class="btn btn-primary" onclick="startCamera()">تفعيل الكاميرا</button>
+      </div>
+      <video id="live-video" autoplay muted playsinline webkit-playsinline></video>
+    </div>
+
+    <div class="rec-row">
+      <div class="rec-left">
+        <div class="rec-dot-anim" id="rec-dot"></div>
+        <div class="timer" id="timer">00:00:00</div>
+        <div class="rec-status" id="rec-status">الكاميرا غير مفعّلة</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-record" onclick="toggleRecording()" disabled>&#9654; بدء التسجيل</button>
+        <button class="btn btn-green" id="btn-save" onclick="saveSession()" style="display:none">&#128190; حفظ الجلسة</button>
+        <button class="btn btn-danger btn-sm" id="btn-discard" onclick="discardRecording()" style="display:none">حذف</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">تفاصيل الجلسة</div>
+      <div class="form-group">
+        <label class="form-label">عنوان الجلسة</label>
+        <input type="text" id="session-title" placeholder="مثال: المحاضرة 5 — المشتقات"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">المادة الدراسية</label>
+        <select id="session-course">
+          <option>الرياضيات 101</option>
+          <option>الفيزياء 201</option>
+          <option>علوم الحاسوب 301</option>
+          <option>الكيمياء 102</option>
+          <option>الأحياء 101</option>
+          <option>اللغة العربية</option>
+          <option>اللغة الإنجليزية</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ملاحظات (اختياري)</label>
+        <input type="text" id="session-notes" placeholder="المواضيع المُدرَّسة، الواجبات، الإعلانات..."/>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE -->
+  <div class="panel" id="panel-attendance">
+    <div class="metrics">
+      <div class="metric"><div class="metric-val" id="cnt-present">0</div><div class="metric-lbl">حاضر</div></div>
+      <div class="metric"><div class="metric-val" id="cnt-late">0</div><div class="metric-lbl">متأخر</div></div>
+      <div class="metric"><div class="metric-val" id="cnt-absent">0</div><div class="metric-lbl">غائب</div></div>
+    </div>
+    <div class="att-toolbar">
+      <span class="att-toolbar-label">تحديد سريع:</span>
+      <button class="btn btn-sm" onclick="markAll('present')">الكل حاضر</button>
+      <button class="btn btn-sm" onclick="markAll('absent')">الكل غائب</button>
+      <button class="btn btn-amber btn-sm" onclick="openEditModal()">&#9998; تعديل الأسماء</button>
+      <button class="btn btn-primary btn-sm" onclick="submitAttendance()">تسجيل الحضور &#10003;</button>
+    </div>
+    <div class="card">
+      <div class="card-title" id="att-date-lbl">قائمة الطلاب</div>
+      <div id="student-list"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="panel" id="panel-history">
+    <div class="metrics">
+      <div class="metric"><div class="metric-val" id="hist-vids">0</div><div class="metric-lbl">تسجيلات محفوظة</div></div>
+      <div class="metric"><div class="metric-val" id="hist-count">0</div><div class="metric-lbl">جلسات الحضور</div></div>
+      <div class="metric"><div class="metric-val" id="hist-avg">—</div><div class="metric-lbl">متوسط الحضور</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">التسجيلات المحفوظة</div>
+      <div id="vid-list"><div class="empty">لا توجد تسجيلات بعد.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">سجل الحضور</div>
+      <div id="att-log"><div class="empty">لا توجد سجلات حضور بعد.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EDIT NAMES MODAL -->
+<div class="modal-overlay" id="edit-modal" onclick="handleModalClick(event,'edit-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <button class="btn btn-primary btn-sm" onclick="saveNames()">حفظ الأسماء</button>
+      <div class="modal-title">&#9998; تعديل أسماء الطلاب</div>
+    </div>
+    <div id="edit-list"></div>
+    <div class="divider"></div>
+    <div style="display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;-webkit-box-align:center;-ms-flex-align:center;align-items:center">
+      <button class="btn btn-green btn-sm" onclick="addStudent()">+ إضافة طالب جديد</button>
+      <button class="btn btn-sm" onclick="closeModal('edit-modal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO PLAYBACK MODAL -->
+<div class="modal-overlay" id="vid-modal" onclick="handleModalClick(event,'vid-modal')">
+  <div class="modal video-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <button class="btn btn-sm" onclick="closeVidModal()">&#10005; إغلاق</button>
+      <div class="modal-title" id="modal-title"></div>
+    </div>
+    <video id="playback-video" controls playsinline webkit-playsinline></video>
+    <div style="margin-top:8px;font-size:12px;color:var(--text2);text-align:right" id="modal-meta"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Cross-browser detection ──────────────────────────────────────────────────
+var ua = navigator.userAgent;
+var isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+var isFirefox = /firefox/i.test(ua);
+var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
+// Show browser-specific notice if needed
+(function() {
+  var warn = document.getElementById('browser-warn');
+  if (isIOS) {
+    warn.textContent = 'ملاحظة: على أجهزة iPhone/iPad، يُنصح باستخدام Safari للحصول على أفضل أداء مع الكاميرا.';
+    warn.style.display = 'block';
+  }
+})();
+
+// ── Supported MIME types (cross-browser) ────────────────────────────────────
+function getSupportedMimeType() {
+  var types = [
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm',
+    'video/mp4;codecs=h264,aac',
+    'video/mp4'
+  ];
+  if (typeof MediaRecorder === 'undefined') return '';
+  for (var i = 0; i < types.length; i++) {
+    if (MediaRecorder.isTypeSupported(types[i])) return types[i];
+  }
+  return '';
+}
+
+// ── App state ────────────────────────────────────────────────────────────────
+var avClasses = ['av-a','av-b','av-c','av-d','av-e','av-f','av-g','av-h'];
+
+var students = [
+  {id:'S001', name:'\u0639\u0627\u0626\u0634\u0629 \u0643\u0631\u064a\u0645', av:'av-a'},
+  {id:'S002', name:'\u0639\u0645\u0631 \u0641\u062a\u062d\u064a', av:'av-b'},
+  {id:'S003', name:'\u0646\u0648\u0631 \u062d\u0633\u0646', av:'av-c'},
+  {id:'S004', name:'\u064a\u0648\u0633\u0641 \u0639\u0644\u064a', av:'av-d'},
+  {id:'S005', name:'\u0633\u0627\u0631\u0629 \u0645\u062d\u0645\u0648\u062f', av:'av-e'},
+  {id:'S006', name:'\u062e\u0627\u0644\u062f \u0625\u0628\u0631\u0627\u0647\u064a\u0645', av:'av-f'},
+  {id:'S007', name:'\u0644\u064a\u0646\u0627 \u0646\u0627\u0635\u0631', av:'av-g'},
+  {id:'S008', name:'\u0637\u0627\u0631\u0642 \u0633\u0645\u064a\u0631', av:'av-h'}
+];
+
+var attendance = {};
+var stream = null;
+var mediaRecorder = null;
+var recordedChunks = [];
+var isRecording = false;
+var timerInterval = null;
+var elapsed = 0;
+var pendingBlob = null;
+var recordings = [];
+var attHistory = [];
+var studentCounter = 9;
+
+function initAtt() {
+  for (var i = 0; i < students.length; i++) {
+    if (!attendance[students[i].id]) attendance[students[i].id] = 'none';
+  }
+}
+initAtt();
+
+var now = new Date();
+document.getElementById('header-date').textContent = now.toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+document.getElementById('att-date-lbl').textContent = '\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0637\u0644\u0627\u0628 \u2014 ' + now.toLocaleDateString('ar-EG', {day:'numeric', month:'long', year:'numeric'});
+
+function getInitials(name) {
+  var parts = name.trim().split(' ');
+  if (parts.length >= 2) return parts[0].charAt(0) + parts[1].charAt(0);
+  return name.slice(0, 2);
+}
+
+// ── Camera ───────────────────────────────────────────────────────────────────
+function startCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showToast('\u26a0\ufe0f \u0645\u062a\u0635\u0641\u062d\u0643 \u0644\u0627 \u064a\u062f\u0639\u0645 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u2014 \u062c\u0631\u0651\u0628 Chrome \u0623\u0648 Firefox');
+    return;
+  }
+
+  // Constraints with fallbacks for older browsers
+  var constraints = {
+    video: {
+      width: {ideal: 1280, max: 1920},
+      height: {ideal: 720, max: 1080},
+      facingMode: 'user'
+    },
+    audio: true
+  };
+
+  navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(s) {
+      stream = s;
+      var v = document.getElementById('live-video');
+      // Cross-browser srcObject
+      if ('srcObject' in v) {
+        v.srcObject = stream;
+      } else {
+        v.src = window.URL.createObjectURL(stream);
+      }
+      v.style.display = 'block';
+      document.getElementById('cam-placeholder').style.display = 'none';
+      document.getElementById('btn-record').disabled = false;
+      document.getElementById('btn-record').removeAttribute('disabled');
+      document.getElementById('rec-status').textContent = '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u062c\u0627\u0647\u0632\u0629';
+      document.getElementById('cam-badge').textContent = '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u0641\u0639\u0651\u0644\u0629';
+      document.getElementById('cam-badge').className = 'badge badge-green';
+      showToast('\u2705 \u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627');
+    })
+    .catch(function(err) {
+      var msg = '\u26a0\ufe0f ';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        msg += '\u062a\u0645 \u0631\u0641\u0636 \u0627\u0644\u0648\u0635\u0648\u0644 \u2014 \u0627\u0633\u0645\u062d \u0628\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u0646 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u0645\u062a\u0635\u0641\u062d';
+      } else if (err.name === 'NotFoundError') {
+        msg += '\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 \u0643\u0627\u0645\u064a\u0631\u0627 \u2014 \u062a\u0623\u0643\u062f \u0645\u0646 \u062a\u0648\u0635\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627';
+      } else if (err.name === 'NotReadableError') {
+        msg += '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u0634\u063a\u0648\u0644\u0629 \u0628\u062a\u0637\u0628\u064a\u0642 \u0622\u062e\u0631 \u2014 \u0623\u063a\u0644\u0642 \u0627\u0644\u062a\u0637\u0628\u064a\u0642\u0627\u062a \u0627\u0644\u0623\u062e\u0631\u0649';
+      } else {
+        msg += '\u062a\u0639\u0630\u0651\u0631 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627';
+      }
+      showToast(msg);
+    });
+}
+
+// ── Recording ────────────────────────────────────────────────────────────────
+function toggleRecording() {
+  if (!isRecording) {
+    if (!stream) return;
+
+    if (typeof MediaRecorder === 'undefined') {
+      showToast('\u26a0\ufe0f \u0645\u062a\u0635\u0641\u062d\u0643 \u0644\u0627 \u064a\u062f\u0639\u0645 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u2014 \u062c\u0631\u0651\u0628 Chrome \u0623\u0648 Firefox');
+      return;
+    }
+
+    recordedChunks = [];
+    var mimeType = getSupportedMimeType();
+    var options = mimeType ? {mimeType: mimeType} : {};
+
+    try {
+      mediaRecorder = new MediaRecorder(stream, options);
+    } catch(e) {
+      try {
+        mediaRecorder = new MediaRecorder(stream);
+      } catch(e2) {
+        showToast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u0628\u062f\u0621 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');
+        return;
+      }
+    }
+
+    mediaRecorder.ondataavailable = function(e) {
+      if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = function() {
+      var mime = (mediaRecorder.mimeType && mediaRecorder.mimeType !== '') ? mediaRecorder.mimeType : 'video/webm';
+      pendingBlob = new Blob(recordedChunks, {type: mime});
+      document.getElementById('btn-save').style.display = '';
+      document.getElementById('btn-discard').style.display = '';
+      document.getElementById('rec-status').textContent = '\u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u062c\u0627\u0647\u0632 \u2014 \u0627\u062d\u0641\u0638\u0647 \u0623\u0648 \u0627\u062d\u0630\u0641\u0647';
+    };
+
+    mediaRecorder.onerror = function() {
+      showToast('\u26a0\ufe0f \u062e\u0637\u0623 \u0623\u062b\u0646\u0627\u0621 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');
+      stopRecordingUI();
+    };
+
+    try {
+      mediaRecorder.start(1000);
+    } catch(e) {
+      showToast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u0628\u062f\u0621 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');
+      return;
+    }
+
+    isRecording = true;
+    elapsed = 0;
+    document.getElementById('rec-dot').style.display = 'inline-block';
+    document.getElementById('btn-record').textContent = '\u23f9 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u062a\u0633\u062c\u064a\u0644';
+    document.getElementById('btn-record').className = 'btn btn-danger';
+    document.getElementById('rec-status').textContent = '\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u0633\u062c\u064a\u0644...';
+    timerInterval = setInterval(function() {
+      elapsed++;
+      var h = pad(Math.floor(elapsed / 3600));
+      var m = pad(Math.floor((elapsed % 3600) / 60));
+      var s = pad(elapsed % 60);
+      document.getElementById('timer').textContent = h + ':' + m + ':' + s;
+    }, 1000);
+
+  } else {
+    stopRecording();
+  }
+}
+
+function pad(n) { return String(n).length < 2 ? '0' + n : String(n); }
+
+function stopRecording() {
+  isRecording = false;
+  clearInterval(timerInterval);
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    try { mediaRecorder.stop(); } catch(e) {}
+  }
+  stopRecordingUI();
+}
+
+function stopRecordingUI() {
+  document.getElementById('rec-dot').style.display = 'none';
+  document.getElementById('btn-record').textContent = '\u25b6 \u0628\u062f\u0621 \u0627\u0644\u062a\u0633\u062c\u064a\u0644';
+  document.getElementById('btn-record').className = 'btn btn-primary';
+}
+
+function saveSession() {
+  if (!pendingBlob) return;
+  var title = document.getElementById('session-title').value.trim() || '\u062c\u0644\u0633\u0629 \u0628\u062f\u0648\u0646 \u0639\u0646\u0648\u0627\u0646';
+  var course = document.getElementById('session-course').value;
+  var notes = document.getElementById('session-notes').value.trim();
+  var h = pad(Math.floor(elapsed / 3600));
+  var m = pad(Math.floor((elapsed % 3600) / 60));
+  var s = pad(elapsed % 60);
+  var duration = h + ':' + m + ':' + s;
+
+  var url;
+  try {
+    url = URL.createObjectURL(pendingBlob);
+  } catch(e) {
+    showToast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u062d\u0641\u0638 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');
+    return;
+  }
+
+  var mime = pendingBlob.type || '';
+  var ext = mime.indexOf('mp4') !== -1 ? 'mp4' : 'webm';
+  var d = new Date();
+  recordings.push({
+    title: title,
+    course: course,
+    notes: notes,
+    duration: duration,
+    url: url,
+    ext: ext,
+    size: Math.round(pendingBlob.size / 1024),
+    date: d.toLocaleDateString('ar-EG', {day:'numeric', month:'long', year:'numeric'}),
+    time: d.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}),
+    blob: pendingBlob
+  });
+  pendingBlob = null;
+  document.getElementById('btn-save').style.display = 'none';
+  document.getElementById('btn-discard').style.display = 'none';
+  document.getElementById('session-title').value = '';
+  document.getElementById('session-notes').value = '';
+  document.getElementById('timer').textContent = '00:00:00';
+  document.getElementById('rec-status').textContent = '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u062c\u0627\u0647\u0632\u0629';
+  updateHistory();
+  showToast('\u{1F4BE} \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u062c\u0644\u0633\u0629 \u0628\u0646\u062c\u0627\u062d');
+}
+
+function discardRecording() {
+  pendingBlob = null;
+  document.getElementById('btn-save').style.display = 'none';
+  document.getElementById('btn-discard').style.display = 'none';
+  document.getElementById('timer').textContent = '00:00:00';
+  document.getElementById('rec-status').textContent = '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u062c\u0627\u0647\u0632\u0629';
+  showToast('\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');
+}
+
+function downloadRecording(idx) {
+  var r = recordings[idx];
+  if (!r) return;
+  try {
+    var a = document.createElement('a');
+    a.style.display = 'none';
+    var safeName = r.title.replace(/[\u0600-\u06FF\s]/g, function(c) {
+      return c === ' ' ? '_' : c;
+    });
+    if (!safeName) safeName = 'recording';
+    a.download = safeName + '.' + r.ext;
+    a.href = r.url;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() { document.body.removeChild(a); }, 300);
+    showToast('\u2b07\ufe0f \u062c\u0627\u0631\u064d \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u062a\u0633\u062c\u064a\u0644...');
+  } catch(e) {
+    // Fallback: open in new tab
+    window.open(r.url, '_blank');
+  }
+}
+
+// ── Attendance ───────────────────────────────────────────────────────────────
+function renderStudents() {
+  var list = document.getElementById('student-list');
+  list.innerHTML = '';
+  for (var i = 0; i < students.length; i++) {
+    var s = students[i];
+    var st = attendance[s.id] || 'none';
+    var row = document.createElement('div');
+    row.className = 'student-row';
+    row.innerHTML =
+      '<div class="att-btns">' +
+        '<button class="att-btn ' + (st === 'present' ? 'present' : '') + '" onclick="mark(\'' + s.id + '\',\'present\')">\u062d\u0627\u0636\u0631</button>' +
+        '<button class="att-btn ' + (st === 'late' ? 'late' : '') + '" onclick="mark(\'' + s.id + '\',\'late\')">\u0645\u062a\u0623\u062e\u0631</button>' +
+        '<button class="att-btn ' + (st === 'absent' ? 'absent' : '') + '" onclick="mark(\'' + s.id + '\',\'absent\')">\u063a\u0627\u0626\u0628</button>' +
+      '</div>' +
+      '<div class="student-info">' +
+        '<div class="student-name">' + s.name + '</div>' +
+        '<div class="student-id">' + s.id + '</div>' +
+      '</div>' +
+      '<div class="avatar ' + s.av + '">' + getInitials(s.name) + '</div>';
+    list.appendChild(row);
+  }
+  updateCounters();
+}
+
+function mark(id, status) {
+  attendance[id] = attendance[id] === status ? 'none' : status;
+  renderStudents();
+}
+
+function markAll(status) {
+  for (var i = 0; i < students.length; i++) attendance[students[i].id] = status;
+  renderStudents();
+}
+
+function updateCounters() {
+  var p = 0, a = 0, l = 0;
+  for (var id in attendance) {
+    if (attendance[id] === 'present') p++;
+    else if (attendance[id] === 'absent') a++;
+    else if (attendance[id] === 'late') l++;
+  }
+  document.getElementById('cnt-present').textContent = p;
+  document.getElementById('cnt-absent').textContent = a;
+  document.getElementById('cnt-late').textContent = l;
+}
+
+function submitAttendance() {
+  var unmarked = [];
+  for (var i = 0; i < students.length; i++) {
+    if (!attendance[students[i].id] || attendance[students[i].id] === 'none') unmarked.push(students[i]);
+  }
+  if (unmarked.length > 0) {
+    showToast('\u26a0\ufe0f ' + unmarked.length + ' \u0637\u0627\u0644\u0628 \u0644\u0645 \u064a\u064f\u0633\u062c\u0651\u0644 \u062d\u0636\u0648\u0631\u0647 \u0628\u0639\u062f');
+    return;
+  }
+  var course = document.getElementById('session-course').value;
+  var title = document.getElementById('session-title').value.trim() || '\u062c\u0644\u0633\u0629';
+  var d = new Date();
+  var dStr = d.toLocaleDateString('ar-EG', {day:'numeric', month:'long', year:'numeric'});
+  var present = 0, late = 0, absent = 0;
+  for (var j = 0; j < students.length; j++) {
+    var v = attendance[students[j].id];
+    if (v === 'present') present++;
+    else if (v === 'late') late++;
+    else if (v === 'absent') absent++;
+  }
+  var rate = Math.round(((present + late) / students.length) * 100);
+  var snap = {};
+  for (var k = 0; k < students.length; k++) snap[students[k].id] = {name: students[k].name, status: attendance[students[k].id]};
+  attHistory.push({title: title, course: course, date: dStr, present: present, late: late, absent: absent, total: students.length, rate: rate, snap: snap});
+  for (var m = 0; m < students.length; m++) attendance[students[m].id] = 'none';
+  renderStudents();
+  updateHistory();
+  showToast('\u2705 \u062a\u0645 \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062d\u0636\u0648\u0631 \u0628\u0646\u062c\u0627\u062d');
+}
+
+// ── Edit Names ───────────────────────────────────────────────────────────────
+function openEditModal() {
+  var el = document.getElementById('edit-list');
+  el.innerHTML = '';
+  for (var i = 0; i < students.length; i++) {
+    var s = students[i];
+    var row = document.createElement('div');
+    row.className = 'edit-row';
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.setAttribute('data-id', s.id);
+    inp.value = s.name;
+    inp.placeholder = '\u0627\u0633\u0645 \u0627\u0644\u0637\u0627\u0644\u0628';
+    var num = document.createElement('span');
+    num.className = 'edit-num';
+    num.textContent = i + 1;
+    var delBtn = document.createElement('button');
+    delBtn.textContent = '\u062d\u0630\u0641';
+    delBtn.style.cssText = 'background:#fbeaea;border:1px solid #d96060;color:#9b2828;border-radius:5px;cursor:pointer;padding:5px 10px;font-size:12px;font-family:Cairo,Tahoma,Arial,sans-serif;white-space:nowrap;-webkit-appearance:none;appearance:none';
+    (function(sid) {
+      delBtn.onclick = function() { removeStudent(sid); };
+    })(s.id);
+    row.appendChild(num);
+    row.appendChild(inp);
+    row.appendChild(delBtn);
+    el.appendChild(row);
+  }
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function removeStudent(id) {
+  students = students.filter(function(s) { return s.id !== id; });
+  delete attendance[id];
+  openEditModal();
+  renderStudents();
+}
+
+function addStudent() {
+  var id = 'S' + (studentCounter < 10 ? '00' + studentCounter : studentCounter < 100 ? '0' + studentCounter : studentCounter);
+  studentCounter++;
+  var av = avClasses[students.length % avClasses.length];
+  students.push({id: id, name: '', av: av});
+  attendance[id] = 'none';
+  openEditModal();
+  setTimeout(function() {
+    var inputs = document.querySelectorAll('#edit-list input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }, 60);
+}
+
+function saveNames() {
+  var inputs = document.querySelectorAll('#edit-list input[data-id]');
+  for (var i = 0; i < inputs.length; i++) {
+    var id = inputs[i].getAttribute('data-id');
+    var val = inputs[i].value.trim();
+    for (var j = 0; j < students.length; j++) {
+      if (students[j].id === id && val) { students[j].name = val; break; }
+    }
+  }
+  closeModal('edit-modal');
+  renderStudents();
+  showToast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0623\u0633\u0645\u0627\u0621');
+}
+
+// ── History ──────────────────────────────────────────────────────────────────
+function updateHistory() {
+  document.getElementById('hist-vids').textContent = recordings.length;
+  document.getElementById('hist-count').textContent = attHistory.length;
+  if (attHistory.length > 0) {
+    var sum = 0;
+    for (var i = 0; i < attHistory.length; i++) sum += attHistory[i].rate;
+    document.getElementById('hist-avg').textContent = Math.round(sum / attHistory.length) + '%';
+  }
+
+  var vidList = document.getElementById('vid-list');
+  if (recordings.length === 0) {
+    vidList.innerHTML = '<div class="empty">\u0644\u0627 \u062a\u0648\u062c\u062f \u062a\u0633\u062c\u064a\u0644\u0627\u062a \u0628\u0639\u062f.</div>';
+  } else {
+    vidList.innerHTML = '';
+    for (var ri = recordings.length - 1; ri >= 0; ri--) {
+      var r = recordings[ri];
+      var item = document.createElement('div');
+      item.className = 'vid-item';
+      var actDiv = document.createElement('div');
+      actDiv.className = 'vid-actions';
+
+      var thumb = document.createElement('div');
+      thumb.className = 'vid-thumb';
+      thumb.title = '\u062a\u0634\u063a\u064a\u0644';
+      thumb.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14"><polygon points="2,1 13,7 2,13" fill="#1a5fa8"/></svg>';
+      (function(idx) { thumb.onclick = function() { playVideo(idx); }; })(ri);
+
+      var dlBtn = document.createElement('button');
+      dlBtn.className = 'btn btn-green btn-sm';
+      dlBtn.textContent = '\u2b07\ufe0f \u062a\u062d\u0645\u064a\u0644';
+      (function(idx) { dlBtn.onclick = function() { downloadRecording(idx); }; })(ri);
+
+      actDiv.appendChild(thumb);
+      actDiv.appendChild(dlBtn);
+
+      var infoDiv = document.createElement('div');
+      infoDiv.className = 'vid-info';
+      infoDiv.innerHTML =
+        '<div class="vid-title">' + r.title + '</div>' +
+        '<div class="vid-meta">' + r.course + ' \u00b7 ' + r.date + ' ' + r.time + ' \u00b7 ' + r.duration + ' \u00b7 ' + r.size + ' KB</div>' +
+        (r.notes ? '<div class="vid-meta" style="font-style:italic">' + r.notes + '</div>' : '');
+
+      var badge = document.createElement('span');
+      badge.className = 'badge badge-blue';
+      badge.style.direction = 'ltr';
+      badge.style.flexShrink = '0';
+      badge.textContent = r.duration;
+
+      item.appendChild(actDiv);
+      item.appendChild(infoDiv);
+      item.appendChild(badge);
+      vidList.appendChild(item);
+    }
+  }
+
+  var attLog = document.getElementById('att-log');
+  if (attHistory.length === 0) {
+    attLog.innerHTML = '<div class="empty">\u0644\u0627 \u062a\u0648\u062c\u062f \u0633\u062c\u0644\u0627\u062a \u062d\u0636\u0648\u0631 \u0628\u0639\u062f.</div>';
+  } else {
+    attLog.innerHTML = '';
+    for (var ai = attHistory.length - 1; ai >= 0; ai--) {
+      var a = attHistory[ai];
+      var bc = a.rate >= 80 ? 'badge-green' : a.rate >= 60 ? 'badge-amber' : 'badge-red';
+      var arow = document.createElement('div');
+      arow.className = 'hist-row';
+      arow.innerHTML =
+        '<span class="badge ' + bc + '" style="flex-shrink:0">' + a.rate + '%</span>' +
+        '<div class="hist-info">' +
+          '<div class="hist-title">' + a.title + ' <span style="font-weight:400;font-size:12px;color:var(--text2)">\u2014 ' + a.course + '</span></div>' +
+          '<div class="hist-meta">' + a.date + ' \u00b7 \u062d\u0627\u0636\u0631: ' + a.present + ' \u00b7 \u0645\u062a\u0623\u062e\u0631: ' + a.late + ' \u00b7 \u063a\u0627\u0626\u0628: ' + a.absent + ' \u0645\u0646 ' + a.total + '</div>' +
+          '<div class="progress-bar" style="width:180px"><div class="progress-fill" style="width:' + a.rate + '%"></div></div>' +
+        '</div>';
+      attLog.appendChild(arow);
+    }
+  }
+}
+
+// ── Video Modal ───────────────────────────────────────────────────────────────
+function playVideo(idx) {
+  var r = recordings[idx];
+  if (!r) return;
+  document.getElementById('modal-title').textContent = r.title;
+  document.getElementById('modal-meta').textContent = r.course + ' \u00b7 ' + r.date + ' \u00b7 ' + r.duration;
+  var v = document.getElementById('playback-video');
+  v.src = r.url;
+  document.getElementById('vid-modal').classList.add('open');
+  v.play().catch(function() {});
+}
+
+function closeVidModal() {
+  var v = document.getElementById('playback-video');
+  v.pause();
+  v.src = '';
+  closeModal('vid-modal');
+}
+
+// ── Modals ───────────────────────────────────────────────────────────────────
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function handleModalClick(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+// ESC key closes modals
+document.addEventListener('keydown', function(e) {
+  var key = e.key || e.keyCode;
+  if (key === 'Escape' || key === 'Esc' || key === 27) {
+    closeVidModal();
+    closeModal('edit-modal');
+  }
+});
+
+// ── Tabs ─────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  var tabs = document.querySelectorAll('.tab');
+  var panels = document.querySelectorAll('.panel');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  for (var j = 0; j < panels.length; j++) panels[j].classList.remove('active');
+  el.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── Toast ────────────────────────────────────────────────────────────────────
+var toastTimeout = null;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(function() { t.style.display = 'none'; }, 3200);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+renderStudents();
+</script>
+</body>
+</html>
