@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title id="page-title">أداة الفصل الدراسي</title>
+<title>أداة الفصل الدراسي</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
 :root{
@@ -17,14 +17,22 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl}
-.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:8px}
-.header-left{display:flex;align-items:center;gap:10px}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:8px}
+.header-left{display:flex;align-items:center;gap:12px}
+/* Logo */
+#app-logo{display:none;width:56px;height:56px;border-radius:10px;object-fit:cover;cursor:pointer;border:1.5px solid var(--border)}
+#logo-placeholder{width:56px;height:56px;border-radius:10px;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg);color:var(--text3);font-size:22px;flex-shrink:0;transition:border-color .2s}
+#logo-placeholder:hover{border-color:var(--blue);color:var(--blue)}
+/* Title */
 .header-title{font-size:22px;font-weight:700;color:var(--text);cursor:pointer;border-bottom:1.5px dashed transparent;transition:border-color .2s;line-height:1.2}
 .header-title:hover{border-bottom-color:var(--border2)}
 .header-title-input{font-size:22px;font-weight:700;color:var(--text);border:none;border-bottom:2px solid var(--blue);background:transparent;font-family:'Cairo',Tahoma,Arial,sans-serif;outline:none;width:300px;direction:rtl}
-.edit-title-btn{background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:2px 4px;font-family:inherit}
+.edit-title-btn{background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);padding:2px 4px;font-family:inherit}
 .edit-title-btn:hover{color:var(--blue)}
-.header-date{font-size:12px;color:var(--text2)}
+.header-date{font-size:11px;color:var(--text2);margin-top:1px}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cloud-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;background:var(--green-bg);color:var(--green-text)}
+/* Layout */
 .container{max-width:960px;margin:0 auto;padding:24px 20px}
 .tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:20px}
 .tab{flex:1;padding:9px;border:none;background:transparent;border-radius:var(--radius-sm);font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .18s}
@@ -37,6 +45,7 @@ body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(
 .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
 .metric-val{font-size:28px;font-weight:700}
 .metric-lbl{font-size:12px;color:var(--text2);margin-top:2px}
+/* Buttons */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s;white-space:nowrap;appearance:none;text-decoration:none}
 .btn:hover{background:var(--bg)}
 .btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
@@ -48,14 +57,20 @@ body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(
 .btn-green:hover{background:#235416}
 .btn-amber{background:var(--amber);border-color:var(--amber);color:#fff}
 .btn-amber:hover{background:#623b07}
+.btn-gray{background:#5f5e5a;border-color:#5f5e5a;color:#fff}
+.btn-gray:hover{background:#444441}
 .btn-sm{padding:5px 12px;font-size:12px}
+/* Forms */
 .form-group{margin-bottom:12px}
 .form-label{font-size:12px;color:var(--text2);font-weight:500;display:block;margin-bottom:4px}
 input[type=text],select,textarea{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:13px;background:var(--surface);color:var(--text);direction:rtl;transition:border-color .15s;appearance:none}
 input[type=text]:focus,select:focus{outline:none;border-color:var(--blue)}
 select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6860' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 10px center;padding-left:30px}
+/* Camera & Video */
 .cam-placeholder{width:100%;background:#111;border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#888;font-size:14px;padding:60px 20px}
 #live-video{width:100%;border-radius:var(--radius-sm);background:#000;display:none;max-height:400px;object-fit:cover}
+.cam-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 0 4px}
+/* Recording row */
 .rec-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
 .rec-left{display:flex;align-items:center;gap:12px}
 .rec-dot-anim{width:10px;height:10px;border-radius:50%;background:var(--red);display:none;animation:blink 1s infinite}
@@ -63,6 +78,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .timer{font-size:24px;font-weight:700;letter-spacing:3px;direction:ltr;font-variant-numeric:tabular-nums}
 .rec-status{font-size:13px;color:var(--text2)}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap}
+/* Attendance */
 .att-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
 .att-toolbar-label{font-size:13px;color:var(--text2);flex:1;min-width:60px}
 .student-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
@@ -78,6 +94,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .att-btn.present{background:var(--green-bg);border-color:#5a9e40;color:var(--green-text)}
 .att-btn.late{background:var(--amber-bg);border-color:#c49040;color:var(--amber-text)}
 .att-btn.absent{background:var(--red-bg);border-color:#d96060;color:var(--red-text)}
+/* Badges */
 .badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:4px}
 .badge-green{background:var(--green-bg);color:var(--green-text)}
 .badge-red{background:var(--red-bg);color:var(--red-text)}
@@ -85,6 +102,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .badge-blue{background:var(--blue-bg);color:var(--blue-text)}
 .progress-bar{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:5px}
 .progress-fill{height:100%;background:var(--green);border-radius:3px}
+/* History items */
 .vid-item{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
 .vid-item:last-child{border-bottom:none}
 .vid-thumb{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--blue-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;margin-top:2px}
@@ -98,6 +116,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .hist-info{flex:1;text-align:right}
 .hist-title{font-size:13px;font-weight:600}
 .hist-meta{font-size:11px;color:var(--text2);margin-top:2px}
+/* Modals */
 .modal-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
 .modal{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
@@ -107,6 +126,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .edit-row input{margin-bottom:0;flex:1}
 .edit-num{font-size:12px;color:var(--text3);min-width:22px;text-align:center;flex-shrink:0}
 #playback-video{width:100%;border-radius:var(--radius-sm);background:#000;max-height:360px;display:block}
+/* Toast */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 22px;border-radius:99px;font-size:13px;font-weight:500;display:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.18)}
 .empty{font-size:13px;color:var(--text2);text-align:center;padding:28px}
 .divider{height:1px;background:var(--border);margin:12px 0}
@@ -114,13 +134,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 @keyframes spin{to{transform:rotate(360deg)}}
 .upload-progress{height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:10px;display:none}
 .upload-fill{height:100%;background:var(--blue);border-radius:4px;transition:width .2s;width:0%}
-.cloud-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;background:var(--green-bg);color:var(--green-text)}
-.setup-banner{background:var(--amber-bg);border:2px solid #c49040;border-radius:var(--radius);padding:20px;margin-bottom:20px}
-.setup-banner h3{font-size:15px;font-weight:700;color:var(--amber-text);margin-bottom:10px}
-.setup-banner p{font-size:13px;color:var(--amber-text);line-height:1.7;margin-bottom:10px}
-.setup-banner input{border-color:#c49040;margin-bottom:6px}
-.setup-banner input:focus{border-color:var(--amber)}
-.code-pill{background:#fff;border:1px solid #c49040;border-radius:4px;padding:1px 7px;font-size:12px;direction:ltr;display:inline-block;font-family:monospace}
+/* Courses */
 .course-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .course-row input{margin-bottom:0;flex:1}
 .drag-handle{cursor:grab;color:var(--text3);font-size:16px;flex-shrink:0;user-select:none;padding:0 2px}
@@ -129,40 +143,39 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .course-row.drag-over{border-top:2px solid var(--blue)}
 .select-edit-btn{background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:2px 6px;font-family:inherit;border-radius:4px;white-space:nowrap}
 .select-edit-btn:hover{background:var(--bg);color:var(--blue)}
+/* Cam off overlay */
+.cam-off-overlay{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:#111;border-radius:var(--radius-sm);align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#666;font-size:13px}
+.cam-off-overlay.visible{display:flex}
+.cam-video-wrap{position:relative}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="header-left">
+    <!-- Logo -->
+    <div style="flex-shrink:0">
+      <img id="app-logo" src="" alt="" title="اضغط لتغيير الشعار — انقر بالزر الأيمن للحذف"/>
+      <div id="logo-placeholder" title="أضف شعاراً">+</div>
+      <input type="file" id="logo-input" accept="image/*" style="display:none" onchange="handleLogoUpload(event)"/>
+    </div>
+    <!-- Title & date -->
     <div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <!-- Logo -->
-        <div id="logo-wrap" style="flex-shrink:0">
-          <img id="app-logo" src="" alt="" style="display:none;width:56px;height:56px;border-radius:10px;object-fit:cover;cursor:pointer" onclick="triggerLogoUpload()" title="اضغط لتغيير الشعار"/>
-          <div id="logo-placeholder" onclick="triggerLogoUpload()" title="أضف شعاراً" style="width:56px;height:56px;border-radius:10px;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg);color:var(--text3);font-size:22px;flex-shrink:0;transition:border-color .2s">+</div>
-          <input type="file" id="logo-input" accept="image/*" style="display:none" onchange="handleLogoUpload(event)"/>
-        </div>
-        <!-- Title -->
-        <div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span id="app-title-display" class="header-title" onclick="startEditTitle()" title="اضغط لتعديل الاسم">أداة الفصل الدراسي</span>
-            <input type="text" id="app-title-input" class="header-title-input" style="display:none" onblur="saveTitle()" onkeydown="titleKeydown(event)" maxlength="60"/>
-            <button class="edit-title-btn" onclick="startEditTitle()" title="تعديل الاسم">✏️</button>
-          </div>
-          <div class="header-date" id="header-date"></div>
-        </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span id="app-title-display" class="header-title" onclick="startEditTitle()" title="اضغط لتعديل الاسم">أداة الفصل الدراسي</span>
+        <input type="text" id="app-title-input" class="header-title-input" style="display:none" onblur="saveTitle()" onkeydown="titleKeydown(event)" maxlength="60"/>
+        <button class="edit-title-btn" onclick="startEditTitle()" title="تعديل الاسم">✏️</button>
       </div>
+      <div class="header-date" id="header-date"></div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+  <div class="header-right">
     <span class="cloud-badge" id="cloud-status" style="display:none">☁️ Firebase متصل</span>
     <span class="badge badge-blue" id="cam-badge">الكاميرا غير مفعّلة</span>
   </div>
 </div>
 
 <div class="container">
-
   <div class="tabs">
     <button class="tab active" onclick="switchTab('record',this)">📹 التسجيل</button>
     <button class="tab" onclick="switchTab('attendance',this)">✅ الحضور</button>
@@ -181,8 +194,21 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <span>اضغط لتفعيل الكاميرا</span>
         <button class="btn btn-primary" onclick="startCamera()">تفعيل الكاميرا</button>
       </div>
-      <video id="live-video" autoplay muted playsinline webkit-playsinline></video>
+      <!-- Camera on/off wrapper -->
+      <div class="cam-video-wrap" id="cam-video-wrap" style="display:none">
+        <video id="live-video" autoplay muted playsinline webkit-playsinline style="width:100%;border-radius:var(--radius-sm);background:#000;display:block;max-height:400px;object-fit:cover"></video>
+        <div class="cam-off-overlay" id="cam-off-overlay">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><line x1="4" y1="4" x2="36" y2="36" stroke="#555" stroke-width="2.5" stroke-linecap="round"/><rect x="2" y="9" width="26" height="20" rx="3" stroke="#555" stroke-width="2"/><path d="M28 16l10-6v18l-10-6V16z" stroke="#555" stroke-width="2"/></svg>
+          <span>الكاميرا متوقفة</span>
+        </div>
+      </div>
+      <!-- Camera toolbar (shown after camera enabled) -->
+      <div class="cam-toolbar" id="cam-toolbar" style="display:none">
+        <button class="btn btn-gray btn-sm" id="btn-cam-toggle" onclick="toggleCamera()">⏸ إيقاف الكاميرا</button>
+        <button class="btn btn-sm" onclick="stopCamera()">✕ إغلاق الكاميرا</button>
+      </div>
     </div>
+
     <div class="rec-row">
       <div class="rec-left">
         <div class="rec-dot-anim" id="rec-dot"></div>
@@ -196,6 +222,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       </div>
     </div>
     <div class="upload-progress" id="upload-progress"><div class="upload-fill" id="upload-fill"></div></div>
+
     <div class="card">
       <div class="card-title">تفاصيل الجلسة</div>
       <div class="form-group">
@@ -204,7 +231,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       </div>
       <div class="form-group">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <button class="select-edit-btn" onclick="openCoursesModal()" title="تعديل قائمة المواد">✏️ تعديل المواد</button>
+          <button class="select-edit-btn" onclick="openCoursesModal()">✏️ تعديل المواد</button>
           <label class="form-label" style="margin-bottom:0">المادة الدراسية</label>
         </div>
         <select id="session-course"></select>
@@ -248,14 +275,13 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <button class="btn btn-sm" onclick="loadHistory()">🔄 تحديث</button>
         <span class="card-title" style="margin-bottom:0">التسجيلات المحفوظة</span>
       </div>
-      <div id="vid-list"><div class="empty">اتصل بـ Firebase أولاً لعرض التسجيلات</div></div>
+      <div id="vid-list"><div class="empty">جارٍ التحميل...</div></div>
     </div>
     <div class="card">
       <div class="card-title">سجل الحضور</div>
-      <div id="att-log"><div class="empty">اتصل بـ Firebase أولاً لعرض سجل الحضور</div></div>
+      <div id="att-log"><div class="empty">جارٍ التحميل...</div></div>
     </div>
   </div>
-
 </div>
 
 <!-- EDIT NAMES MODAL -->
@@ -303,26 +329,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   </div>
 </div>
 
-<!-- HELP MODAL -->
-<div class="modal-overlay" id="help-modal" onclick="handleOverlay(event,'help-modal')">
-  <div class="modal" style="max-width:560px" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <button class="btn btn-sm" onclick="closeModal('help-modal')">إغلاق</button>
-      <div class="modal-title">أين أجد بيانات Firebase؟</div>
-    </div>
-    <div style="font-size:13px;color:var(--text2);line-height:2">
-      <div><strong style="color:var(--text)">1.</strong> اذهب إلى <span style="background:var(--blue-bg);color:var(--blue);border-radius:4px;padding:1px 7px;font-size:12px;font-weight:600">console.firebase.google.com</span></div>
-      <div><strong style="color:var(--text)">2.</strong> اختر مشروعك ← اضغط على أيقونة <strong>&lt;/&gt;</strong> (Web app)</div>
-      <div><strong style="color:var(--text)">3.</strong> أو اذهب إلى <strong>Project Settings ← General ← Your apps</strong></div>
-      <div><strong style="color:var(--text)">4.</strong> ستجد <strong>firebaseConfig</strong> — انسخ منه: <span style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:11px;direction:ltr;display:inline-block">apiKey</span> و <span style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:11px;direction:ltr;display:inline-block">projectId</span> و <span style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:11px;direction:ltr;display:inline-block">storageBucket</span></div>
-      <div><strong style="color:var(--text)">5.</strong> تأكد أن <strong>Firestore</strong> و <strong>Storage</strong> مفعّلان من القائمة الجانبية (Build)</div>
-      <div style="background:var(--amber-bg);border:1px solid #c49040;border-radius:6px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--amber-text)">
-        ⚠️ تأكد أن قواعد Firestore و Storage مضبوطة على <strong>test mode</strong> أو أضف قواعد تسمح بالقراءة والكتابة.
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- COURSES MODAL -->
 <div class="modal-overlay" id="courses-modal" onclick="handleOverlay(event,'courses-modal')">
   <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
@@ -348,17 +354,123 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <script>
+// ── Firebase (hardcoded) ──────────────────────────
+var db = null, storage = null, fbReady = false;
+
+function initFirebase() {
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyBtHLJ8GVI24LnKAXfQ89qY0ZQE5dyas4I",
+      authDomain: "luxor-class-v2.firebaseapp.com",
+      projectId: "luxor-class-v2",
+      storageBucket: "luxor-class-v2.firebasestorage.app",
+      appId: "1:401625295378:web:636132f586afd85b5806cb"
+    });
+    db = firebase.firestore();
+    storage = firebase.storage();
+    fbReady = true;
+    document.getElementById('cloud-status').style.display = 'inline-flex';
+    loadAppConfig();   // load title + logo from Firebase
+    loadHistory();
+  } catch(e) {
+    showToast('\u26a0\ufe0f Firebase: ' + e.message);
+  }
+}
+
+// ── App config (title + logo) stored in Firebase ──
+function loadAppConfig() {
+  db.collection('config').doc('app').get().then(function(doc) {
+    if (!doc.exists) return;
+    var data = doc.data();
+    if (data.title) setTitleDisplay(data.title);
+    if (data.logo) showLogo(data.logo);
+  }).catch(function(){});
+}
+
+function saveAppConfig(field, value) {
+  if (!fbReady) return;
+  var update = {};
+  update[field] = value;
+  db.collection('config').doc('app').set(update, {merge: true}).catch(function(){});
+}
+
+// ── Title ─────────────────────────────────────────
+function setTitleDisplay(title) {
+  document.getElementById('app-title-display').textContent = title;
+  document.title = title;
+}
+
+function startEditTitle() {
+  var display = document.getElementById('app-title-display');
+  var input = document.getElementById('app-title-input');
+  input.value = display.textContent;
+  display.style.display = 'none';
+  input.style.display = 'inline-block';
+  input.focus(); input.select();
+}
+
+function saveTitle() {
+  var input = document.getElementById('app-title-input');
+  var display = document.getElementById('app-title-display');
+  var val = input.value.trim() || 'أداة الفصل الدراسي';
+  setTitleDisplay(val);
+  input.style.display = 'none';
+  display.style.display = 'inline-block';
+  saveAppConfig('title', val);
+  showToast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u0644\u0644\u062c\u0645\u064a\u0639');
+}
+
+function titleKeydown(e) {
+  if (e.key === 'Enter') saveTitle();
+  if (e.key === 'Escape') {
+    document.getElementById('app-title-input').style.display = 'none';
+    document.getElementById('app-title-display').style.display = 'inline-block';
+  }
+}
+
+// ── Logo ──────────────────────────────────────────
+function triggerLogoUpload() {
+  document.getElementById('logo-input').click();
+}
+
+function handleLogoUpload(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('\u26a0\ufe0f \u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0635\u0648\u0631\u0629'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('\u26a0\ufe0f \u0627\u0644\u0635\u0648\u0631\u0629 \u0623\u0643\u0628\u0631 \u0645\u0646 2MB'); return; }
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var dataUrl = ev.target.result;
+    showLogo(dataUrl);
+    saveAppConfig('logo', dataUrl);
+    showToast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0634\u0639\u0627\u0631 \u0644\u0644\u062c\u0645\u064a\u0639');
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function showLogo(dataUrl) {
+  var img = document.getElementById('app-logo');
+  img.src = dataUrl;
+  img.style.display = 'block';
+  document.getElementById('logo-placeholder').style.display = 'none';
+}
+
+function removeLogo() {
+  document.getElementById('app-logo').style.display = 'none';
+  document.getElementById('app-logo').src = '';
+  document.getElementById('logo-placeholder').style.display = 'flex';
+  saveAppConfig('logo', '');
+  showToast('\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u0634\u0639\u0627\u0631');
+}
+
 // ── Courses ───────────────────────────────────────
 var COURSES_KEY = 'app_courses';
-var DEFAULT_COURSES = [
-  'الرياضيات 101','الفيزياء 201','علوم الحاسوب 301',
-  'الكيمياء 102','الأحياء 101','اللغة العربية','اللغة الإنجليزية'
-];
+var DEFAULT_COURSES = ['\u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0627\u062a 101','\u0627\u0644\u0641\u064a\u0632\u064a\u0627\u0621 201','\u0639\u0644\u0648\u0645 \u0627\u0644\u062d\u0627\u0633\u0648\u0628 301','\u0627\u0644\u0643\u064a\u0645\u064a\u0627\u0621 102','\u0627\u0644\u0623\u062d\u064a\u0627\u0621 101','\u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0639\u0631\u0628\u064a\u0629','\u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629'];
 
 function loadCourses() {
   var saved = localStorage.getItem(COURSES_KEY);
-  var courses = saved ? JSON.parse(saved) : DEFAULT_COURSES;
-  renderCourseSelect(courses);
+  renderCourseSelect(saved ? JSON.parse(saved) : DEFAULT_COURSES);
 }
 
 function renderCourseSelect(courses) {
@@ -376,216 +488,51 @@ function renderCourseSelect(courses) {
 function openCoursesModal() {
   var saved = localStorage.getItem(COURSES_KEY);
   var courses = saved ? JSON.parse(saved) : DEFAULT_COURSES;
-  var list = document.getElementById('courses-list');
-  list.innerHTML = '';
+  var list = document.getElementById('courses-list'); list.innerHTML = '';
   courses.forEach(function(c, i) { addCourseRowWith(c, i); });
   document.getElementById('courses-modal').classList.add('open');
 }
 
 var dragSrc = null;
-
 function addCourseRowWith(value, idx) {
   var list = document.getElementById('courses-list');
-  var row = document.createElement('div');
-  row.className = 'course-row';
-  row.draggable = true;
-  row.dataset.idx = idx;
-
-  var handle = document.createElement('span');
-  handle.className = 'drag-handle';
-  handle.textContent = '⠿';
-  handle.title = 'اسحب لإعادة الترتيب';
-
-  var num = document.createElement('span');
-  num.className = 'edit-num';
-  num.textContent = list.children.length + 1;
-
-  var inp = document.createElement('input');
-  inp.type = 'text';
-  inp.value = value || '';
-  inp.placeholder = 'اسم المادة...';
-
-  var del = document.createElement('button');
-  del.textContent = 'حذف';
+  var row = document.createElement('div'); row.className = 'course-row'; row.draggable = true;
+  var handle = document.createElement('span'); handle.className = 'drag-handle'; handle.textContent = '\u28bf'; handle.title = '\u0633\u062d\u0628';
+  var num = document.createElement('span'); num.className = 'edit-num'; num.textContent = list.children.length + 1;
+  var inp = document.createElement('input'); inp.type = 'text'; inp.value = value || ''; inp.placeholder = '\u0627\u0633\u0645 \u0627\u0644\u0645\u0627\u062f\u0629...';
+  var del = document.createElement('button'); del.textContent = '\u062d\u0630\u0641';
   del.style.cssText = 'background:var(--red-bg);border:1px solid #d96060;color:var(--red-text);border-radius:5px;cursor:pointer;padding:5px 10px;font-size:12px;font-family:inherit;white-space:nowrap;appearance:none';
   del.onclick = function() { row.remove(); renumberCourseRows(); };
-
-  row.appendChild(handle);
-  row.appendChild(num);
-  row.appendChild(inp);
-  row.appendChild(del);
+  row.appendChild(handle); row.appendChild(num); row.appendChild(inp); row.appendChild(del);
   list.appendChild(row);
-
-  // Drag events
-  row.addEventListener('dragstart', function(e) {
-    dragSrc = row;
-    row.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-  });
-  row.addEventListener('dragend', function() {
-    row.classList.remove('dragging');
-    document.querySelectorAll('.course-row').forEach(function(r){ r.classList.remove('drag-over'); });
-  });
-  row.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    if (dragSrc && dragSrc !== row) row.classList.add('drag-over');
-  });
+  row.addEventListener('dragstart', function(e) { dragSrc = row; row.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+  row.addEventListener('dragend', function() { row.classList.remove('dragging'); document.querySelectorAll('.course-row').forEach(function(r){r.classList.remove('drag-over');}); });
+  row.addEventListener('dragover', function(e) { e.preventDefault(); if(dragSrc&&dragSrc!==row) row.classList.add('drag-over'); });
   row.addEventListener('dragleave', function() { row.classList.remove('drag-over'); });
   row.addEventListener('drop', function(e) {
-    e.preventDefault();
-    row.classList.remove('drag-over');
+    e.preventDefault(); row.classList.remove('drag-over');
     if (dragSrc && dragSrc !== row) {
-      var list = document.getElementById('courses-list');
       var rows = Array.from(list.children);
-      var srcIdx = rows.indexOf(dragSrc);
-      var tgtIdx = rows.indexOf(row);
-      if (srcIdx < tgtIdx) list.insertBefore(dragSrc, row.nextSibling);
+      if (rows.indexOf(dragSrc) < rows.indexOf(row)) list.insertBefore(dragSrc, row.nextSibling);
       else list.insertBefore(dragSrc, row);
       renumberCourseRows();
     }
   });
 }
-
-function addCourseRow() {
-  addCourseRowWith('', document.getElementById('courses-list').children.length);
-  var inputs = document.querySelectorAll('#courses-list input');
-  if (inputs.length) inputs[inputs.length - 1].focus();
-}
-
-function renumberCourseRows() {
-  var rows = document.querySelectorAll('#courses-list .course-row');
-  rows.forEach(function(r, i) {
-    var num = r.querySelector('.edit-num');
-    if (num) num.textContent = i + 1;
-  });
-}
-
+function addCourseRow() { addCourseRowWith('', document.getElementById('courses-list').children.length); var ins=document.querySelectorAll('#courses-list input'); if(ins.length) ins[ins.length-1].focus(); }
+function renumberCourseRows() { document.querySelectorAll('#courses-list .course-row').forEach(function(r,i){ var n=r.querySelector('.edit-num'); if(n) n.textContent=i+1; }); }
 function saveCourses() {
   var inputs = document.querySelectorAll('#courses-list input');
   var courses = [];
-  inputs.forEach(function(inp) {
-    var val = inp.value.trim();
-    if (val) courses.push(val);
-  });
-  if (courses.length === 0) { showToast('⚠️ أضف مادة واحدة على الأقل'); return; }
+  inputs.forEach(function(inp){ var v=inp.value.trim(); if(v) courses.push(v); });
+  if (courses.length === 0) { showToast('\u26a0\ufe0f \u0623\u0636\u0641 \u0645\u0627\u062f\u0629 \u0648\u0627\u062d\u062f\u0629 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644'); return; }
   localStorage.setItem(COURSES_KEY, JSON.stringify(courses));
   renderCourseSelect(courses);
   closeModal('courses-modal');
-  showToast('✅ تم حفظ المواد الدراسية');
+  showToast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0645\u0648\u0627\u062f');
 }
 
-// ── Logo ─────────────────────────────────────────
-var LOGO_KEY = 'app_logo';
-
-function loadLogo() {
-  var saved = localStorage.getItem(LOGO_KEY);
-  if (saved) showLogo(saved);
-}
-
-function triggerLogoUpload() {
-  document.getElementById('logo-input').click();
-}
-
-function handleLogoUpload(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  if (!file.type.startsWith('image/')) { showToast('⚠️ يرجى اختيار صورة'); return; }
-  if (file.size > 2 * 1024 * 1024) { showToast('⚠️ الصورة أكبر من 2MB — اختر صورة أصغر'); return; }
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    var dataUrl = ev.target.result;
-    localStorage.setItem(LOGO_KEY, dataUrl);
-    showLogo(dataUrl);
-    showToast('✅ تم رفع الشعار');
-  };
-  reader.readAsDataURL(file);
-  // reset input so same file can be re-selected
-  e.target.value = '';
-}
-
-function showLogo(dataUrl) {
-  var img = document.getElementById('app-logo');
-  var placeholder = document.getElementById('logo-placeholder');
-  img.src = dataUrl;
-  img.style.display = 'block';
-  placeholder.style.display = 'none';
-}
-
-function removeLogo() {
-  localStorage.removeItem(LOGO_KEY);
-  document.getElementById('app-logo').style.display = 'none';
-  document.getElementById('app-logo').src = '';
-  document.getElementById('logo-placeholder').style.display = 'flex';
-  showToast('تم حذف الشعار');
-}
-
-// ── App title ────────────────────────────────────
-var APP_TITLE_KEY = 'app_title';
-
-function loadAppTitle() {
-  var saved = localStorage.getItem(APP_TITLE_KEY);
-  if (saved) setTitleDisplay(saved);
-}
-
-function setTitleDisplay(title) {
-  document.getElementById('app-title-display').textContent = title;
-  document.title = title;
-}
-
-function startEditTitle() {
-  var display = document.getElementById('app-title-display');
-  var input = document.getElementById('app-title-input');
-  var current = localStorage.getItem(APP_TITLE_KEY) || 'أداة الفصل الدراسي';
-  input.value = current;
-  display.style.display = 'none';
-  input.style.display = 'inline-block';
-  input.focus();
-  input.select();
-}
-
-function saveTitle() {
-  var input = document.getElementById('app-title-input');
-  var display = document.getElementById('app-title-display');
-  var val = input.value.trim();
-  if (!val) val = 'أداة الفصل الدراسي';
-  localStorage.setItem(APP_TITLE_KEY, val);
-  setTitleDisplay(val);
-  input.style.display = 'none';
-  display.style.display = 'inline-block';
-  showToast('✅ تم حفظ اسم التطبيق');
-}
-
-function titleKeydown(e) {
-  if (e.key === 'Enter') saveTitle();
-  if (e.key === 'Escape') {
-    document.getElementById('app-title-input').style.display = 'none';
-    document.getElementById('app-title-display').style.display = 'inline-block';
-  }
-}
-
-// ── Firebase (hardcoded) ──────────────────────────
-var db = null, storage = null, fbReady = false;
-
-function initFirebase() {
-  try {
-    firebase.initializeApp({
-      apiKey: "AIzaSyBtHLJ8GVI24LnKAXfQ89qY0ZQE5dyas4I",
-      authDomain: "luxor-class-v2.firebaseapp.com",
-      projectId: "luxor-class-v2",
-      storageBucket: "luxor-class-v2.firebasestorage.app",
-      appId: "1:401625295378:web:636132f586afd85b5806cb"
-    });
-    db = firebase.firestore();
-    storage = firebase.storage();
-    fbReady = true;
-    document.getElementById('cloud-status').style.display = 'inline-flex';
-    loadHistory();
-  } catch(e) {
-    showToast('\u26a0\ufe0f \u062e\u0637\u0623 Firebase: ' + e.message);
-  }
-}
-
-// ── State ─────────────────────────────────────────
+// ── App state ─────────────────────────────────────
 var avClasses = ['av-a','av-b','av-c','av-d','av-e','av-f','av-g','av-h'];
 var students = [
   {id:'S001',name:'\u0639\u0627\u0626\u0634\u0629 \u0643\u0631\u064a\u0645',av:'av-a'},
@@ -601,6 +548,7 @@ var attendance = {};
 var stream = null, mediaRecorder = null, recordedChunks = [];
 var isRecording = false, timerInterval = null, elapsed = 0;
 var pendingBlob = null, studentCounter = 9, renameTarget = null;
+var camOn = false; // camera video track on/off
 
 function initAtt(){ students.forEach(function(s){ if(!attendance[s.id]) attendance[s.id]='none'; }); }
 initAtt();
@@ -617,26 +565,69 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 function startCamera() {
   if (!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ showToast('\u26a0\ufe0f \u0645\u062a\u0635\u0641\u062d\u0643 \u0644\u0627 \u064a\u062f\u0639\u0645 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627'); return; }
   navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'},audio:true})
-    .then(function(s){
-      stream=s;
-      var v=document.getElementById('live-video');
-      if('srcObject' in v) v.srcObject=stream; else v.src=window.URL.createObjectURL(stream);
-      v.style.display='block';
-      document.getElementById('cam-placeholder').style.display='none';
-      document.getElementById('btn-record').disabled=false;
-      document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u062c\u0627\u0647\u0632\u0629';
-      document.getElementById('cam-badge').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u0641\u0639\u0651\u0644\u0629';
-      document.getElementById('cam-badge').className='badge badge-green';
+    .then(function(s) {
+      stream = s; camOn = true;
+      var v = document.getElementById('live-video');
+      if ('srcObject' in v) v.srcObject = stream; else v.src = window.URL.createObjectURL(stream);
+      document.getElementById('cam-placeholder').style.display = 'none';
+      document.getElementById('cam-video-wrap').style.display = 'block';
+      document.getElementById('cam-toolbar').style.display = 'flex';
+      document.getElementById('btn-record').disabled = false;
+      document.getElementById('rec-status').textContent = '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u062c\u0627\u0647\u0632\u0629';
+      document.getElementById('cam-badge').textContent = '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u0641\u0639\u0651\u0644\u0629';
+      document.getElementById('cam-badge').className = 'badge badge-green';
       showToast('\u2705 \u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627');
     })
-    .catch(function(err){
-      var m='\u26a0\ufe0f ';
-      if(err.name==='NotAllowedError') m+='\u064a\u0631\u062c\u0649 \u0627\u0644\u0633\u0645\u0627\u062d \u0628\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u0646 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u0645\u062a\u0635\u0641\u062d';
-      else if(err.name==='NotFoundError') m+='\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 \u0643\u0627\u0645\u064a\u0631\u0627';
-      else if(err.name==='NotReadableError') m+='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u0634\u063a\u0648\u0644\u0629 \u0628\u062a\u0637\u0628\u064a\u0642 \u0622\u062e\u0631';
-      else m+='\u062a\u0639\u0630\u0651\u0631 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627';
+    .catch(function(err) {
+      var m = '\u26a0\ufe0f ';
+      if (err.name==='NotAllowedError') m += '\u064a\u0631\u062c\u0649 \u0627\u0644\u0633\u0645\u0627\u062d \u0628\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u0646 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u0645\u062a\u0635\u0641\u062d';
+      else if (err.name==='NotFoundError') m += '\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 \u0643\u0627\u0645\u064a\u0631\u0627';
+      else if (err.name==='NotReadableError') m += '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u0634\u063a\u0648\u0644\u0629 \u0628\u062a\u0637\u0628\u064a\u0642 \u0622\u062e\u0631';
+      else m += '\u062a\u0639\u0630\u0651\u0631 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627';
       showToast(m);
     });
+}
+
+// Toggle camera video track on / off
+function toggleCamera() {
+  if (!stream) return;
+  var videoTrack = stream.getVideoTracks()[0];
+  if (!videoTrack) return;
+  camOn = !camOn;
+  videoTrack.enabled = camOn;
+  var overlay = document.getElementById('cam-off-overlay');
+  var btn = document.getElementById('btn-cam-toggle');
+  if (camOn) {
+    overlay.classList.remove('visible');
+    btn.textContent = '\u23f8 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627';
+    btn.className = 'btn btn-gray btn-sm';
+    showToast('\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0634\u063a\u0627\u0644\u0629');
+  } else {
+    overlay.classList.add('visible');
+    btn.textContent = '\u25b6 \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627';
+    btn.className = 'btn btn-green btn-sm';
+    showToast('\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629');
+  }
+}
+
+// Fully stop and close camera
+function stopCamera() {
+  if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+  camOn = false;
+  if (isRecording) { isRecording = false; clearInterval(timerInterval); if(mediaRecorder&&mediaRecorder.state!=='inactive') try{mediaRecorder.stop();}catch(e){} }
+  document.getElementById('cam-video-wrap').style.display = 'none';
+  document.getElementById('cam-toolbar').style.display = 'none';
+  document.getElementById('cam-placeholder').style.display = 'flex';
+  document.getElementById('cam-off-overlay').classList.remove('visible');
+  document.getElementById('btn-record').disabled = true;
+  document.getElementById('btn-record').textContent = '\u25b6 \u0628\u062f\u0621 \u0627\u0644\u062a\u0633\u062c\u064a\u0644';
+  document.getElementById('btn-record').className = 'btn btn-primary';
+  document.getElementById('rec-dot').style.display = 'none';
+  document.getElementById('timer').textContent = '00:00:00';
+  document.getElementById('rec-status').textContent = '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u063a\u064a\u0631 \u0645\u0641\u0639\u0651\u0644\u0629';
+  document.getElementById('cam-badge').textContent = '\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u063a\u064a\u0631 \u0645\u0641\u0639\u0651\u0644\u0629';
+  document.getElementById('cam-badge').className = 'badge badge-blue';
+  showToast('\u062a\u0645 \u0625\u063a\u0644\u0627\u0642 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627');
 }
 
 // ── Recording ─────────────────────────────────────
@@ -649,7 +640,8 @@ function getMime(){
 
 function toggleRecording(){
   if(!isRecording){
-    if(!stream) return;
+    if(!stream){ showToast('\u0634\u063a\u0651\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0623\u0648\u0644\u0627\u064b'); return; }
+    if(!camOn){ showToast('\u26a0\ufe0f \u0634\u063a\u0651\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0642\u0628\u0644 \u0627\u0644\u062a\u0633\u062c\u064a\u0644'); return; }
     if(typeof MediaRecorder==='undefined'){ showToast('\u26a0\ufe0f \u0645\u062a\u0635\u0641\u062d\u0643 \u0644\u0627 \u064a\u062f\u0639\u0645 \u0627\u0644\u062a\u0633\u062c\u064a\u0644'); return; }
     recordedChunks=[];
     var mime=getMime();
@@ -681,7 +673,7 @@ function toggleRecording(){
 // ── Save to Firebase ──────────────────────────────
 function saveSession(){
   if(!pendingBlob){ showToast('\u0644\u0627 \u064a\u0648\u062c\u062f \u062a\u0633\u062c\u064a\u0644'); return; }
-  if(!fbReady){ showToast('\u26a0\ufe0f \u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0628\u0640 Firebase...'); return; }
+  if(!fbReady){ showToast('\u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644...'); return; }
   var title=document.getElementById('session-title').value.trim()||'\u062c\u0644\u0633\u0629 \u0628\u062f\u0648\u0646 \u0639\u0646\u0648\u0627\u0646';
   var course=document.getElementById('session-course').value;
   var notes=document.getElementById('session-notes').value.trim();
@@ -697,15 +689,14 @@ function saveSession(){
   var task=ref.put(pendingBlob);
   task.on('state_changed',
     function(snap){ fill.style.width=Math.round((snap.bytesTransferred/snap.totalBytes)*100)+'%'; },
-    function(err){ showToast('\u26a0\ufe0f \u062e\u0637\u0623 \u0641\u064a \u0627\u0644\u0631\u0641\u0639: '+err.message); btn.disabled=false; btn.textContent='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638'; prog.style.display='none'; },
+    function(err){ showToast('\u26a0\ufe0f \u062e\u0637\u0623: '+err.message); btn.disabled=false; btn.textContent='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638'; prog.style.display='none'; },
     function(){
       task.snapshot.ref.getDownloadURL().then(function(url){
         return db.collection('recordings').add({
-          title:title, course:course, notes:notes, duration:dur,
+          title:title,course:course,notes:notes,duration:dur,
           date:d.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'}),
           time:d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),
-          videoUrl:url, storagePath:path,
-          size:Math.round(pendingBlob.size/1024),
+          videoUrl:url,storagePath:path,size:Math.round(pendingBlob.size/1024),
           createdAt:firebase.firestore.FieldValue.serverTimestamp()
         });
       }).then(function(){
@@ -713,14 +704,14 @@ function saveSession(){
         pendingBlob=null;
         document.getElementById('btn-save').style.display='none';
         document.getElementById('btn-discard').style.display='none';
-        btn.disabled=false; btn.textContent='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';
+        btn.disabled=false; btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';
         document.getElementById('session-title').value='';
         document.getElementById('session-notes').value='';
         document.getElementById('timer').textContent='00:00:00';
         document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u062c\u0627\u0647\u0632\u0629';
         setTimeout(function(){ prog.style.display='none'; fill.style.width='0%'; },600);
-        loadHistory(); showToast('\u2705 \u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u0628\u0646\u062c\u0627\u062d');
-      }).catch(function(e){ showToast('\u26a0\ufe0f \u062e\u0637\u0623: '+e.message); btn.disabled=false; btn.textContent='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638'; prog.style.display='none'; });
+        loadHistory(); showToast('\u2705 \u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');
+      }).catch(function(e){ showToast('\u26a0\ufe0f '+e.message); btn.disabled=false; btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638'; prog.style.display='none'; });
     }
   );
 }
@@ -764,7 +755,7 @@ function updateCounters(){
 function submitAttendance(){
   var unm=students.filter(function(s){ return !attendance[s.id]||attendance[s.id]==='none'; });
   if(unm.length>0){ showToast('\u26a0\ufe0f '+unm.length+' \u0637\u0627\u0644\u0628 \u0644\u0645 \u064a\u064f\u0633\u062c\u0651\u0644 \u062d\u0636\u0648\u0631\u0647 \u0628\u0639\u062f'); return; }
-  if(!fbReady){ showToast('\u26a0\ufe0f \u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0628\u0640 Firebase...'); return; }
+  if(!fbReady){ showToast('\u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644...'); return; }
   var course=document.getElementById('session-course').value;
   var title=document.getElementById('session-title').value.trim()||'\u062c\u0644\u0633\u0629';
   var d=new Date();
@@ -775,35 +766,30 @@ function submitAttendance(){
   var snap={};
   students.forEach(function(s){ snap[s.id]={name:s.name,status:attendance[s.id]}; });
   db.collection('attendance').add({
-    title:title, course:course,
+    title:title,course:course,
     date:d.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'}),
-    present:pr, late:la, absent:ab, total:students.length, rate:rate, snapshot:snap,
+    present:pr,late:la,absent:ab,total:students.length,rate:rate,snapshot:snap,
     createdAt:firebase.firestore.FieldValue.serverTimestamp()
   }).then(function(){
     students.forEach(function(s){ attendance[s.id]='none'; });
     renderStudents(); loadHistory();
-    showToast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0633\u062c\u0644 \u0627\u0644\u062d\u0636\u0648\u0631 \u0628\u0646\u062c\u0627\u062d');
+    showToast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0633\u062c\u0644 \u0627\u0644\u062d\u0636\u0648\u0631');
   }).catch(function(e){ showToast('\u26a0\ufe0f '+e.message); });
 }
 
 // ── Load History ──────────────────────────────────
 function loadHistory(){
-  if(!fbReady){
-    document.getElementById('vid-list').innerHTML='<div class="empty">\u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644...</div>';
-    document.getElementById('att-log').innerHTML='<div class="empty">\u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644...</div>';
-    return;
-  }
+  if(!fbReady) return;
   document.getElementById('vid-list').innerHTML='<div class="empty">\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u062d\u0645\u064a\u0644...</div>';
   document.getElementById('att-log').innerHTML='<div class="empty">\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u062d\u0645\u064a\u0644...</div>';
 
-  // Recordings
   db.collection('recordings').orderBy('createdAt','desc').get().then(function(snap){
     document.getElementById('hist-vids').textContent=snap.size;
     var vidList=document.getElementById('vid-list');
     if(snap.empty){ vidList.innerHTML='<div class="empty">\u0644\u0627 \u062a\u0648\u062c\u062f \u062a\u0633\u062c\u064a\u0644\u0627\u062a \u0628\u0639\u062f.</div>'; return; }
     vidList.innerHTML='';
     snap.forEach(function(doc){
-      var r=doc.data(), docId=doc.id;
+      var r=doc.data(),docId=doc.id;
       var item=document.createElement('div'); item.className='vid-item'; item.id='vid-'+docId;
       item.innerHTML=
         '<div class="vid-thumb" onclick="playVideo(\''+esc(r.videoUrl)+'\',\''+esc(r.title)+'\',\''+esc(r.course+' · '+r.date+' · '+r.duration)+'\')" title="\u062a\u0634\u063a\u064a\u0644">'+
@@ -825,15 +811,13 @@ function loadHistory(){
     });
   }).catch(function(e){ document.getElementById('vid-list').innerHTML='<div class="empty">\u062e\u0637\u0623: '+e.message+'</div>'; });
 
-  // Attendance
   db.collection('attendance').orderBy('createdAt','desc').get().then(function(snap){
     document.getElementById('hist-count').textContent=snap.size;
     var attLog=document.getElementById('att-log');
     if(snap.empty){ attLog.innerHTML='<div class="empty">\u0644\u0627 \u062a\u0648\u062c\u062f \u0633\u062c\u0644\u0627\u062a \u062d\u0636\u0648\u0631 \u0628\u0639\u062f.</div>'; document.getElementById('hist-avg').textContent='\u2014'; return; }
     attLog.innerHTML=''; var totalRate=0;
     snap.forEach(function(doc){
-      var a=doc.data(), docId=doc.id;
-      totalRate+=a.rate;
+      var a=doc.data(),docId=doc.id; totalRate+=a.rate;
       var bc=a.rate>=80?'badge-green':a.rate>=60?'badge-amber':'badge-red';
       var row=document.createElement('div'); row.className='hist-row';
       row.innerHTML=
@@ -851,17 +835,14 @@ function loadHistory(){
 }
 
 // ── Delete & Rename ───────────────────────────────
-function deleteRecording(docId, storagePath){
+function deleteRecording(docId,storagePath){
   if(!confirm('\u062d\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u0646\u0647\u0627\u0626\u064a\u0627\u064b\u061f')) return;
   var el=document.getElementById('vid-'+docId);
   if(el){ el.style.opacity='.4'; el.style.pointerEvents='none'; }
   var delDoc=function(){ return db.collection('recordings').doc(docId).delete(); };
   var finish=function(){ if(el) el.remove(); loadHistory(); showToast('\u2705 \u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062a\u0633\u062c\u064a\u0644'); };
-  if(storagePath){
-    storage.ref(storagePath).delete().then(delDoc).catch(delDoc).then(finish).catch(function(e){ showToast('\u26a0\ufe0f '+e.message); if(el){el.style.opacity='1';el.style.pointerEvents='';} });
-  } else {
-    delDoc().then(finish).catch(function(e){ showToast('\u26a0\ufe0f '+e.message); if(el){el.style.opacity='1';el.style.pointerEvents='';} });
-  }
+  if(storagePath){ storage.ref(storagePath).delete().then(delDoc).catch(delDoc).then(finish).catch(function(e){ showToast('\u26a0\ufe0f '+e.message); if(el){el.style.opacity='1';el.style.pointerEvents='';} }); }
+  else { delDoc().then(finish).catch(function(e){ showToast('\u26a0\ufe0f '+e.message); if(el){el.style.opacity='1';el.style.pointerEvents='';} }); }
 }
 
 function deleteAttendance(docId){
@@ -871,19 +852,18 @@ function deleteAttendance(docId){
     .catch(function(e){ showToast('\u26a0\ufe0f '+e.message); });
 }
 
-function openRenameModal(docId, currentTitle){
+function openRenameModal(docId,currentTitle){
   renameTarget=docId;
   document.getElementById('rename-input').value=currentTitle;
   document.getElementById('rename-modal').classList.add('open');
   setTimeout(function(){ var inp=document.getElementById('rename-input'); inp.focus(); inp.select(); },80);
 }
-
 function confirmRename(){
   if(!renameTarget) return;
   var newTitle=document.getElementById('rename-input').value.trim();
   if(!newTitle){ showToast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0627\u064b'); return; }
   db.collection('recordings').doc(renameTarget).update({title:newTitle})
-    .then(function(){ closeModal('rename-modal'); renameTarget=null; loadHistory(); showToast('\u2705 \u062a\u0645 \u062a\u063a\u064a\u064a\u0631 \u0627\u0633\u0645 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 \u0628\u0646\u062c\u0627\u062d'); })
+    .then(function(){ closeModal('rename-modal'); renameTarget=null; loadHistory(); showToast('\u2705 \u062a\u0645 \u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0627\u0633\u0645'); })
     .catch(function(e){ showToast('\u26a0\ufe0f '+e.message); });
 }
 
@@ -936,21 +916,21 @@ function switchTab(name,el){
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 function handleOverlay(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
-document.addEventListener('keydown',function(e){ if(e.key==='Escape'||e.keyCode===27){ closeVidModal(); closeModal('edit-modal'); closeModal('rename-modal'); closeModal('help-modal'); closeModal('courses-modal'); } });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'||e.keyCode===27){ closeVidModal(); closeModal('edit-modal'); closeModal('rename-modal'); closeModal('courses-modal'); } });
 var _tt=null;
 function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; if(_tt) clearTimeout(_tt); _tt=setTimeout(function(){t.style.display='none';},3500); }
 
 // ── Init ──────────────────────────────────────────
 loadCourses();
-loadAppTitle();
-loadLogo();
 renderStudents();
 initFirebase();
 
-// Right-click on logo to remove it
-document.getElementById('app-logo').addEventListener('contextmenu', function(e) {
+// Logo events
+document.getElementById('app-logo').addEventListener('click', triggerLogoUpload);
+document.getElementById('logo-placeholder').addEventListener('click', triggerLogoUpload);
+document.getElementById('app-logo').addEventListener('contextmenu', function(e){
   e.preventDefault();
-  if (confirm('حذف الشعار الحالي؟')) removeLogo();
+  if(confirm('\u062d\u0630\u0641 \u0627\u0644\u0634\u0639\u0627\u0631 \u0627\u0644\u062d\u0627\u0644\u064a\u061f')) removeLogo();
 });
 </script>
 </body>
