@@ -19,9 +19,9 @@
 body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl}
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:8px}
 .header-left{display:flex;align-items:center;gap:10px}
-.header-title{font-size:18px;font-weight:700;color:var(--text);cursor:pointer;border-bottom:1.5px dashed transparent;transition:border-color .2s}
+.header-title{font-size:22px;font-weight:700;color:var(--text);cursor:pointer;border-bottom:1.5px dashed transparent;transition:border-color .2s;line-height:1.2}
 .header-title:hover{border-bottom-color:var(--border2)}
-.header-title-input{font-size:18px;font-weight:700;color:var(--text);border:none;border-bottom:2px solid var(--blue);background:transparent;font-family:'Cairo',Tahoma,Arial,sans-serif;outline:none;width:260px;direction:rtl}
+.header-title-input{font-size:22px;font-weight:700;color:var(--text);border:none;border-bottom:2px solid var(--blue);background:transparent;font-family:'Cairo',Tahoma,Arial,sans-serif;outline:none;width:300px;direction:rtl}
 .edit-title-btn{background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:2px 4px;font-family:inherit}
 .edit-title-btn:hover{color:var(--blue)}
 .header-date{font-size:12px;color:var(--text2)}
@@ -139,8 +139,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div style="display:flex;align-items:center;gap:10px">
         <!-- Logo -->
         <div id="logo-wrap" style="flex-shrink:0">
-          <img id="app-logo" src="" alt="" style="display:none;width:38px;height:38px;border-radius:8px;object-fit:cover;cursor:pointer" onclick="triggerLogoUpload()" title="اضغط لتغيير الشعار"/>
-          <div id="logo-placeholder" onclick="triggerLogoUpload()" title="أضف شعاراً" style="width:38px;height:38px;border-radius:8px;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg);color:var(--text3);font-size:18px;flex-shrink:0;transition:border-color .2s">+</div>
+          <img id="app-logo" src="" alt="" style="display:none;width:56px;height:56px;border-radius:10px;object-fit:cover;cursor:pointer" onclick="triggerLogoUpload()" title="اضغط لتغيير الشعار"/>
+          <div id="logo-placeholder" onclick="triggerLogoUpload()" title="أضف شعاراً" style="width:56px;height:56px;border-radius:10px;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg);color:var(--text3);font-size:22px;flex-shrink:0;transition:border-color .2s">+</div>
           <input type="file" id="logo-input" accept="image/*" style="display:none" onchange="handleLogoUpload(event)"/>
         </div>
         <!-- Title -->
@@ -153,7 +153,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <div class="header-date" id="header-date"></div>
         </div>
       </div>
-      <div class="header-date" id="header-date"></div>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -163,28 +162,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </div>
 
 <div class="container">
-
-  <!-- FIREBASE SETUP BANNER -->
-  <div class="setup-banner" id="setup-banner">
-    <h3>⚙️ إعداد Firebase — مرة واحدة فقط</h3>
-    <p>أدخل بيانات مشروعك على Firebase لكي يرى الجميع نفس الفيديوهات والحضور:</p>
-    <div class="form-group">
-      <label class="form-label">API Key</label>
-      <input type="text" id="fb-apikey" placeholder="AIzaSy..."/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Project ID</label>
-      <input type="text" id="fb-projectid" placeholder="my-classroom-12345"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Storage Bucket</label>
-      <input type="text" id="fb-bucket" placeholder="my-classroom-12345.appspot.com"/>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-      <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()">حفظ والاتصال</button>
-      <button class="btn btn-sm" onclick="document.getElementById('help-modal').classList.add('open')">أين أجد هذه البيانات؟</button>
-    </div>
-  </div>
 
   <div class="tabs">
     <button class="tab active" onclick="switchTab('record',this)">📹 التسجيل</button>
@@ -586,47 +563,25 @@ function titleKeydown(e) {
   }
 }
 
-// ── Firebase ─────────────────────────────────────
+// ── Firebase (hardcoded) ──────────────────────────
 var db = null, storage = null, fbReady = false;
 
-function loadFirebaseConfig() {
-  var cfg = localStorage.getItem('fb_config');
-  if (!cfg) return;
+function initFirebase() {
   try {
-    var c = JSON.parse(cfg);
-    if (c.apiKey && c.projectId && c.storageBucket) initFirebase(c, false);
-  } catch(e) {}
-}
-
-function saveFirebaseConfig() {
-  var apiKey = document.getElementById('fb-apikey').value.trim();
-  var projectId = document.getElementById('fb-projectid').value.trim();
-  var bucket = document.getElementById('fb-bucket').value.trim();
-  if (!apiKey || !projectId || !bucket) { showToast('⚠️ أكمل جميع الحقول'); return; }
-  var cfg = {apiKey:apiKey, projectId:projectId, storageBucket:bucket};
-  localStorage.setItem('fb_config', JSON.stringify(cfg));
-  initFirebase(cfg, true);
-}
-
-function initFirebase(c, showMsg) {
-  try {
-    if (firebase.apps.length) firebase.apps.forEach(function(a){ try{a.delete();}catch(e){} });
     firebase.initializeApp({
-      apiKey: c.apiKey,
-      authDomain: c.projectId + '.firebaseapp.com',
-      projectId: c.projectId,
-      storageBucket: c.storageBucket,
-      appId: '1:0:web:0'
+      apiKey: "AIzaSyBtHLJ8GVI24LnKAXfQ89qY0ZQE5dyas4I",
+      authDomain: "luxor-class-v2.firebaseapp.com",
+      projectId: "luxor-class-v2",
+      storageBucket: "luxor-class-v2.firebasestorage.app",
+      appId: "1:401625295378:web:636132f586afd85b5806cb"
     });
     db = firebase.firestore();
     storage = firebase.storage();
     fbReady = true;
-    document.getElementById('setup-banner').style.display = 'none';
     document.getElementById('cloud-status').style.display = 'inline-flex';
-    if (showMsg) showToast('✅ تم الاتصال بـ Firebase');
     loadHistory();
   } catch(e) {
-    showToast('⚠️ خطأ في Firebase: ' + e.message);
+    showToast('\u26a0\ufe0f \u062e\u0637\u0623 Firebase: ' + e.message);
   }
 }
 
@@ -726,7 +681,7 @@ function toggleRecording(){
 // ── Save to Firebase ──────────────────────────────
 function saveSession(){
   if(!pendingBlob){ showToast('\u0644\u0627 \u064a\u0648\u062c\u062f \u062a\u0633\u062c\u064a\u0644'); return; }
-  if(!fbReady){ showToast('\u26a0\ufe0f \u0633\u062c\u0651\u0644 \u0628\u064a\u0627\u0646\u0627\u062a Firebase \u0623\u0648\u0644\u0627\u064b'); return; }
+  if(!fbReady){ showToast('\u26a0\ufe0f \u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0628\u0640 Firebase...'); return; }
   var title=document.getElementById('session-title').value.trim()||'\u062c\u0644\u0633\u0629 \u0628\u062f\u0648\u0646 \u0639\u0646\u0648\u0627\u0646';
   var course=document.getElementById('session-course').value;
   var notes=document.getElementById('session-notes').value.trim();
@@ -809,7 +764,7 @@ function updateCounters(){
 function submitAttendance(){
   var unm=students.filter(function(s){ return !attendance[s.id]||attendance[s.id]==='none'; });
   if(unm.length>0){ showToast('\u26a0\ufe0f '+unm.length+' \u0637\u0627\u0644\u0628 \u0644\u0645 \u064a\u064f\u0633\u062c\u0651\u0644 \u062d\u0636\u0648\u0631\u0647 \u0628\u0639\u062f'); return; }
-  if(!fbReady){ showToast('\u26a0\ufe0f \u0633\u062c\u0651\u0644 \u0628\u064a\u0627\u0646\u0627\u062a Firebase \u0623\u0648\u0644\u0627\u064b'); return; }
+  if(!fbReady){ showToast('\u26a0\ufe0f \u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0628\u0640 Firebase...'); return; }
   var course=document.getElementById('session-course').value;
   var title=document.getElementById('session-title').value.trim()||'\u062c\u0644\u0633\u0629';
   var d=new Date();
@@ -834,8 +789,8 @@ function submitAttendance(){
 // ── Load History ──────────────────────────────────
 function loadHistory(){
   if(!fbReady){
-    document.getElementById('vid-list').innerHTML='<div class="empty">\u0627\u062a\u0635\u0644 \u0628\u0640 Firebase \u0623\u0648\u0644\u0627\u064b</div>';
-    document.getElementById('att-log').innerHTML='<div class="empty">\u0627\u062a\u0635\u0644 \u0628\u0640 Firebase \u0623\u0648\u0644\u0627\u064b</div>';
+    document.getElementById('vid-list').innerHTML='<div class="empty">\u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644...</div>';
+    document.getElementById('att-log').innerHTML='<div class="empty">\u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644...</div>';
     return;
   }
   document.getElementById('vid-list').innerHTML='<div class="empty">\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u062d\u0645\u064a\u0644...</div>';
@@ -990,7 +945,7 @@ loadCourses();
 loadAppTitle();
 loadLogo();
 renderStudents();
-loadFirebaseConfig();
+initFirebase();
 
 // Right-click on logo to remove it
 document.getElementById('app-logo').addEventListener('contextmenu', function(e) {
