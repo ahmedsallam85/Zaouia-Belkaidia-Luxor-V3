@@ -17,9 +17,11 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl}
+
+/* HEADER */
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:8px}
 .header-left{display:flex;align-items:center;gap:12px}
-#app-logo{display:none;width:52px;height:52px;border-radius:10px;object-fit:cover;cursor:pointer;border:1.5px solid var(--border)}
+#app-logo{display:none;width:52px;height:52px;border-radius:10px;object-fit:cover;cursor:pointer;border:1.5px solid var(--border);flex-shrink:0}
 #logo-ph{width:52px;height:52px;border-radius:10px;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg);color:var(--text3);font-size:20px;flex-shrink:0}
 #logo-ph:hover{border-color:var(--blue);color:var(--blue)}
 .h-title{font-size:22px;font-weight:700;cursor:pointer;border-bottom:1.5px dashed transparent;line-height:1.2}
@@ -31,7 +33,9 @@ body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(
 .cloud-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;background:var(--green-bg);color:var(--green-text)}
 .sync-ind{font-size:11px;color:var(--text3);display:none;align-items:center;gap:4px}
 .sync-ind.on{display:inline-flex}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:#c49040;animation:blink 1s infinite}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#c49040;animation:pulse 1s infinite}
+
+/* LAYOUT */
 .container{max-width:1000px;margin:0 auto;padding:20px}
 .tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:20px}
 .tab{flex:1;padding:9px;border:none;background:transparent;border-radius:var(--radius-sm);font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .18s}
@@ -40,10 +44,8 @@ body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(
 .panel{display:none}.panel.active{display:block}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
 .card-title{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.4px;margin-bottom:12px}
-.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
-.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
-.metric-val{font-size:26px;font-weight:700}
-.metric-lbl{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s;white-space:nowrap;appearance:none;text-decoration:none}
 .btn:hover{background:var(--bg)}
 .btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
@@ -53,50 +55,62 @@ body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(
 .btn-amber{background:var(--amber);border-color:var(--amber);color:#fff}.btn-amber:hover{background:#623b07}
 .btn-gray{background:#5f5e5a;border-color:#5f5e5a;color:#fff}.btn-gray:hover{background:#444441}
 .btn-sm{padding:5px 12px;font-size:12px}
-.btn-lg{padding:14px 32px;font-size:16px;border-radius:var(--radius)}
+
+/* FORMS */
 .form-group{margin-bottom:10px}
 .form-label{font-size:12px;color:var(--text2);font-weight:500;display:block;margin-bottom:3px}
 input[type=text],select{width:100%;padding:8px 11px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Cairo',Tahoma,Arial,sans-serif;font-size:13px;background:var(--surface);color:var(--text);direction:rtl;appearance:none}
 input[type=text]:focus,select:focus{outline:none;border-color:var(--blue)}
 select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6860' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 10px center;padding-left:30px}
 
-/* ── LIVE ROOM ── */
-.live-setup-banner{background:var(--amber-bg);border:2px solid #c49040;border-radius:var(--radius);padding:20px;margin-bottom:16px}
-.live-setup-banner h3{font-size:15px;font-weight:700;color:var(--amber-text);margin-bottom:8px}
-.live-setup-banner p{font-size:13px;color:var(--amber-text);line-height:1.7;margin-bottom:10px}
-.live-lobby{text-align:center;padding:48px 20px}
-.live-lobby-icon{width:80px;height:80px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
-.live-lobby h2{font-size:20px;font-weight:700;margin-bottom:8px}
-.live-lobby p{font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.7}
-.live-status-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px}
-.live-dot{width:10px;height:10px;border-radius:50%;background:#e24b4a;animation:blink 1s infinite;flex-shrink:0}
-.live-label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
-.participants-count{font-size:13px;color:var(--text2)}
-.daily-frame-wrap{position:relative;width:100%;padding-top:56.25%;border-radius:var(--radius-sm);overflow:hidden;background:#111;margin-bottom:12px}
-.daily-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:var(--radius-sm)}
-.room-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 0}
-
-/* ── DUAL CAM ── */
-.dual-cam-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.cam-box{position:relative;background:#111;border-radius:var(--radius-sm);overflow:hidden;aspect-ratio:16/9}
+/* CAMERAS */
+.cam-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.cam-box{position:relative;background:#0a0a0a;border-radius:var(--radius-sm);overflow:hidden;aspect-ratio:16/9;border:1px solid var(--border)}
 .cam-box video{width:100%;height:100%;object-fit:cover;display:block}
-.cam-ph-inner{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#666;font-size:12px}
-.cam-off-ov{display:none;position:absolute;inset:0;background:#111;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#555;font-size:12px}
-.cam-off-ov.on{display:flex}
-.cam-lbl{position:absolute;bottom:6px;right:8px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;padding:2px 7px;border-radius:3px}
+.cam-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#555;font-size:12px}
+.cam-off-cover{position:absolute;inset:0;background:#0a0a0a;display:none;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#444;font-size:12px}
+.cam-off-cover.show{display:flex}
+.cam-label{position:absolute;bottom:7px;right:8px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;padding:2px 8px;border-radius:3px;pointer-events:none}
+.cam-controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.live-pill{display:inline-flex;align-items:center;gap:5px;background:#fbeaea;color:#9b2828;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#e24b4a;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
 
-/* REC */
+/* LIVE STREAM SECTION */
+.live-section{border:2px solid #e24b4a;border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.live-header{background:#fbeaea;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.live-title{font-size:13px;font-weight:700;color:var(--red-text);display:flex;align-items:center;gap:8px}
+.live-viewer-count{font-size:12px;color:var(--red-text)}
+.remote-videos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:12px;background:#0d0d0d;min-height:120px}
+.remote-video-wrap{position:relative;border-radius:var(--radius-sm);overflow:hidden;aspect-ratio:16/9;background:#1a1a1a}
+.remote-video-wrap video{width:100%;height:100%;object-fit:cover;display:block}
+.remote-name{position:absolute;bottom:5px;right:6px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;padding:1px 7px;border-radius:3px}
+.waiting-msg{display:flex;align-items:center;justify-content:center;height:100px;color:#444;font-size:13px;flex-direction:column;gap:8px}
+
+/* LOBBY */
+.lobby-card{text-align:center;padding:32px 20px}
+.lobby-icon{width:64px;height:64px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.lobby-title{font-size:17px;font-weight:700;margin-bottom:8px}
+.lobby-sub{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.7}
+.lobby-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* RECORDING ROW */
 .rec-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px}
 .rec-left{display:flex;align-items:center;gap:10px}
-.rec-dot{width:9px;height:9px;border-radius:50%;background:var(--red);display:none;animation:blink 1s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+.rec-dot{width:9px;height:9px;border-radius:50%;background:var(--red);display:none;animation:pulse 1s infinite}
 .timer{font-size:22px;font-weight:700;letter-spacing:3px;direction:ltr;font-variant-numeric:tabular-nums}
 .rec-status{font-size:12px;color:var(--text2)}
 .btn-row{display:flex;gap:6px;flex-wrap:wrap}
 .up-prog{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px;display:none}
 .up-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .2s;width:0%}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-/* ATT */
+/* ATTENDANCE */
+.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.metric-val{font-size:26px;font-weight:700}
+.metric-lbl{font-size:11px;color:var(--text2);margin-top:2px}
 .att-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px}
 .att-lbl{font-size:13px;color:var(--text2);flex:1;min-width:50px}
 .s-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
@@ -115,6 +129,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .bg{background:var(--green-bg);color:var(--green-text)}.br{background:var(--red-bg);color:var(--red-text)}.ba{background:var(--amber-bg);color:var(--amber-text)}.bb{background:var(--blue-bg);color:var(--blue)}
 .prog-bar{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}
 .prog-fill{height:100%;background:var(--green);border-radius:3px}
+.no-stu{background:var(--amber-bg);border:1px solid #c49040;border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--amber-text);text-align:center}
+.course-att-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
+.cat{padding:6px 14px;border:1px solid var(--border2);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);background:transparent;font-family:inherit;transition:all .15s}
+.cat.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* HISTORY */
 .vid-item{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}
 .vid-item:last-child{border-bottom:none}
 .vid-thumb{width:34px;height:34px;border-radius:var(--radius-sm);background:var(--blue-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;margin-top:2px}
@@ -126,6 +146,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .hist-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
 .hist-row:last-child{border-bottom:none}
 .hist-info{flex:1;text-align:right}
+
+/* MODALS */
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;padding:16px}
 .ov.open{display:flex}
 .modal{background:var(--surface);border-radius:var(--radius);padding:22px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;border:1px solid var(--border)}
@@ -138,21 +160,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:9px 20px;border-radius:99px;font-size:13px;font-weight:500;display:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.18)}
 .empty{font-size:13px;color:var(--text2);text-align:center;padding:24px}
 .div{height:1px;background:var(--border);margin:12px 0}
-.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
-@keyframes sp{to{transform:rotate(360deg)}}
 .cr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .cr input{margin-bottom:0;flex:1}
 .dh{cursor:grab;color:var(--text3);font-size:15px;flex-shrink:0;user-select:none}
 .cr.dragging{opacity:.4}.cr.drag-over{border-top:2px solid var(--blue)}
 .sel-eb{background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:2px 6px;font-family:inherit;border-radius:4px}
 .sel-eb:hover{background:var(--bg);color:var(--blue)}
-.course-att-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
-.cat{padding:6px 14px;border:1px solid var(--border2);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);background:transparent;font-family:inherit;transition:all .15s}
-.cat.active{background:var(--blue);border-color:var(--blue);color:#fff}
-.no-stu{background:var(--amber-bg);border:1px solid #c49040;border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--amber-text);text-align:center}
-.name-input-row{display:flex;gap:8px;margin-bottom:12px}
-.name-input-row input{flex:1}
-@media(max-width:600px){.dual-cam-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+
+@media(max-width:600px){
+  .cam-grid{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -160,7 +178,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="header">
   <div class="header-left">
     <div style="flex-shrink:0">
-      <img id="app-logo" src="" alt="" title="اضغط لتغيير الشعار — كليك يمين للحذف"/>
+      <img id="app-logo" src="" alt="" title="اضغط لتغيير الشعار"/>
       <div id="logo-ph" title="أضف شعاراً">+</div>
       <input type="file" id="logo-inp" accept="image/*" style="display:none" onchange="handleLogoUpload(event)"/>
     </div>
@@ -169,7 +187,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <span id="ttl-d" class="h-title" onclick="startEditTitle()">أداة الفصل الدراسي</span>
         <input type="text" id="ttl-i" class="h-title-inp" onblur="saveTitle()" onkeydown="titleKD(event)" maxlength="60"/>
         <button class="eb" onclick="startEditTitle()">✏️</button>
-        <span class="sync-ind" id="sync-ind"><span class="sync-dot"></span>جارٍ الحفظ...</span>
+        <span class="sync-ind" id="sync-ind"><span class="sync-dot"></span>حفظ...</span>
       </div>
       <div class="h-date" id="h-date"></div>
     </div>
@@ -181,119 +199,132 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <div class="container">
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('live',this)">📡 البث المباشر</button>
-    <button class="tab" onclick="switchTab('record',this)">📹 التسجيل</button>
+    <button class="tab active" onclick="switchTab('record',this)">📹 التسجيل والبث</button>
     <button class="tab" onclick="switchTab('attendance',this)">✅ الحضور</button>
     <button class="tab" onclick="switchTab('history',this)">📋 السجل</button>
   </div>
 
-  <!-- ══ LIVE TAB ══ -->
-  <div class="panel active" id="panel-live">
+  <!-- ══════════════════════════════════════════════
+       RECORD & LIVE TAB
+  ══════════════════════════════════════════════ -->
+  <div class="panel active" id="panel-record">
 
-    <!-- Setup banner (shown until Daily key is set) -->
-    <div class="live-setup-banner" id="daily-setup-banner">
-      <h3>⚙️ إعداد البث المباشر — مرة واحدة فقط</h3>
-      <p>أدخل API Key من <strong>daily.co</strong> لتفعيل البث المباشر التفاعلي. المشاركون يرون ويسمعون ويتحدثون مباشرة داخل التطبيق.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input type="text" id="daily-key-inp" placeholder="أدخل Daily.co API Key هنا..." style="flex:1;min-width:200px"/>
-        <button class="btn btn-primary btn-sm" onclick="saveDailyKey()">حفظ وتفعيل</button>
-      </div>
-      <div style="margin-top:8px;font-size:11px;color:var(--amber-text)">
-        احصل على API Key مجاناً من <strong>dashboard.daily.co</strong> ← Developers ← API Keys
-      </div>
-    </div>
-
-    <!-- Lobby (shown when key is set but not in session) -->
-    <div id="live-lobby" style="display:none">
-      <div class="card">
-        <div class="live-lobby">
-          <div class="live-lobby-icon">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="1" y="8" width="24" height="20" rx="3" stroke="#1a5fa8" stroke-width="2"/><path d="M25 14l10-5v18l-10-5V14z" stroke="#1a5fa8" stroke-width="2"/><circle cx="13" cy="18" r="4" stroke="#1a5fa8" stroke-width="2"/></svg>
-          </div>
-          <h2>الفصل الدراسي المباشر</h2>
-          <p>المدرس يبدأ الجلسة وجميع المشاركين يدخلون مباشرة<br>بالصوت والصورة — بدون أي إعداد</p>
-          <div class="name-input-row">
-            <input type="text" id="participant-name" placeholder="أدخل اسمك للانضمام..." style="text-align:center"/>
-          </div>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-            <button class="btn btn-primary btn-lg" onclick="joinAsInstructor()">🎓 دخول كمدرس</button>
-            <button class="btn btn-green btn-lg" onclick="joinAsStudent()">👤 دخول كطالب</button>
-          </div>
-          <div style="margin-top:16px;font-size:12px;color:var(--text2)">جميع من يفتح هذا الرابط يمكنه الانضمام والتحدث</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active session -->
-    <div id="live-session" style="display:none">
-      <div class="live-status-bar">
-        <div class="live-label"><span class="live-dot"></span>جلسة مباشرة نشطة</div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span class="participants-count" id="part-count">المشاركون: جارٍ التحميل...</span>
-          <button class="btn btn-danger btn-sm" onclick="leaveSession()">✕ مغادرة الجلسة</button>
-        </div>
-      </div>
-      <div class="daily-frame-wrap" id="daily-frame-wrap">
-        <iframe id="daily-iframe" allow="camera;microphone;autoplay;display-capture;fullscreen" allowfullscreen></iframe>
-      </div>
-    </div>
-
-    <!-- Dual preview cameras (instructor only, shown after joining) -->
-    <div class="card" id="dual-cam-card" style="display:none">
+    <!-- ① CAMERAS SECTION -->
+    <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-primary btn-sm" id="btn-start-cams" onclick="startBothCams()">تفعيل الكاميرتين</button>
-          <button class="btn btn-sm" id="btn-stop-cams" onclick="stopAllCams()" style="display:none">إيقاف الكاميرتين</button>
+          <button class="btn btn-primary btn-sm" id="btn-open-cams" onclick="openCameras()">تفعيل الكاميرات</button>
+          <button class="btn btn-gray btn-sm" id="btn-close-cams" onclick="closeCameras()" style="display:none">إغلاق الكاميرات</button>
         </div>
-        <div class="card-title" style="margin-bottom:0">معاينة الكاميرتين (للمدرس)</div>
+        <div class="card-title" style="margin-bottom:0">كاميرتا المدرس</div>
       </div>
-      <div class="dual-cam-grid">
+
+      <div class="cam-grid">
+        <!-- Camera 1 -->
         <div class="cam-box" id="cam-box-1">
-          <div class="cam-ph-inner" id="cam-ph-1">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="1" y="6" width="18" height="14" rx="2" stroke="#555" stroke-width="1.5"/><path d="M19 11l8-4v12l-8-4V11z" stroke="#555" stroke-width="1.5"/></svg>
+          <div class="cam-ph" id="cam-ph-1">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="1" y="6" width="18" height="14" rx="2" stroke="#444" stroke-width="1.5"/><path d="M19 10l8-4v14l-8-4V10z" stroke="#444" stroke-width="1.5"/></svg>
             <span>الكاميرا الرئيسية</span>
           </div>
-          <video id="vid-1" autoplay muted playsinline style="display:none"></video>
-          <div class="cam-off-ov" id="off-1"><span>متوقفة</span></div>
-          <div class="cam-lbl">الرئيسية</div>
-        </div>
-        <div class="cam-box" id="cam-box-2">
-          <div class="cam-ph-inner" id="cam-ph-2">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="1" y="6" width="18" height="14" rx="2" stroke="#555" stroke-width="1.5"/><path d="M19 11l8-4v12l-8-4V11z" stroke="#555" stroke-width="1.5"/></svg>
-            <span>كاميرا السبورة</span>
+          <video id="vid-1" autoplay muted playsinline style="display:none;width:100%;height:100%;object-fit:cover"></video>
+          <div class="cam-off-cover" id="off-1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="2" y1="2" x2="22" y2="22" stroke="#555" stroke-width="2" stroke-linecap="round"/><rect x="1" y="5" width="14" height="11" rx="2" stroke="#555" stroke-width="1.5"/></svg>
+            <span>متوقفة</span>
           </div>
-          <video id="vid-2" autoplay muted playsinline style="display:none"></video>
-          <div class="cam-off-ov" id="off-2"><span>متوقفة</span></div>
-          <div class="cam-lbl">السبورة</div>
+          <div class="cam-label">الرئيسية</div>
+        </div>
+        <!-- Camera 2 -->
+        <div class="cam-box" id="cam-box-2">
+          <div class="cam-ph" id="cam-ph-2">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="1" y="6" width="18" height="14" rx="2" stroke="#444" stroke-width="1.5"/><path d="M19 10l8-4v14l-8-4V10z" stroke="#444" stroke-width="1.5"/><rect x="6" y="10" width="6" height="5" rx="1" stroke="#444" stroke-width="1.2"/></svg>
+            <span>السبورة / الشاشة</span>
+          </div>
+          <video id="vid-2" autoplay muted playsinline style="display:none;width:100%;height:100%;object-fit:cover"></video>
+          <div class="cam-off-cover" id="off-2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="2" y1="2" x2="22" y2="22" stroke="#555" stroke-width="2" stroke-linecap="round"/><rect x="1" y="5" width="14" height="11" rx="2" stroke="#555" stroke-width="1.5"/></svg>
+            <span>متوقفة</span>
+          </div>
+          <div class="cam-label">السبورة</div>
         </div>
       </div>
+
+      <!-- Camera selectors + controls (shown after cameras open) -->
       <div id="cam-sel-wrap" style="display:none">
-        <div class="dual-cam-grid" style="margin-top:8px">
-          <div><label class="form-label">الكاميرا الرئيسية</label><select id="sel-cam-1" onchange="switchCam(1)"></select></div>
-          <div><label class="form-label">كاميرا السبورة</label><select id="sel-cam-2" onchange="switchCam(2)"></select></div>
+        <div class="cam-grid" style="margin-bottom:8px">
+          <div>
+            <label class="form-label">الكاميرا الرئيسية</label>
+            <select id="sel-1" onchange="switchCam(1)"></select>
+          </div>
+          <div>
+            <label class="form-label">كاميرا السبورة</label>
+            <select id="sel-2" onchange="switchCam(2)"></select>
+          </div>
         </div>
-        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        <div class="cam-controls">
           <button class="btn btn-gray btn-sm" id="btn-tog-1" onclick="toggleCam(1)">⏸ إيقاف 1</button>
           <button class="btn btn-gray btn-sm" id="btn-tog-2" onclick="toggleCam(2)">⏸ إيقاف 2</button>
           <button class="btn btn-sm" onclick="swapCams()">🔄 تبديل</button>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ══ RECORD TAB ══ -->
-  <div class="panel" id="panel-record">
-    <div class="card" style="padding:10px">
-      <select id="rec-cam-sel" style="margin-bottom:8px"></select>
-      <div class="cam-box" style="aspect-ratio:16/9;max-height:340px">
-        <div class="cam-ph-inner" id="rec-cam-ph">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="1" y="6" width="18" height="14" rx="2" stroke="#555" stroke-width="1.5"/><path d="M19 11l8-4v12l-8-4V11z" stroke="#555" stroke-width="1.5"/></svg>
-          <span style="font-size:12px">اضغط "تفعيل" لبدء المعاينة</span>
-          <button class="btn btn-primary btn-sm" onclick="startRecCam()">تفعيل الكاميرا</button>
+    <!-- ② LIVE STREAM SECTION -->
+    <!-- Lobby (before starting/joining) -->
+    <div id="live-lobby" class="card">
+      <div class="lobby-card">
+        <div class="lobby-icon">
+          <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><circle cx="15" cy="15" r="13" stroke="#1a5fa8" stroke-width="2"/><polygon points="11,9 23,15 11,21" fill="#1a5fa8"/></svg>
         </div>
-        <video id="rec-live-vid" autoplay muted playsinline style="display:none;width:100%;height:100%;object-fit:cover"></video>
+        <div class="lobby-title">البث المباشر</div>
+        <div class="lobby-sub">المدرس يبدأ البث — أي شخص يفتح الرابط يرى ويسمع مباشرة<br/>ويمكن للجميع التحدث والمشاركة</div>
+        <div style="margin-bottom:16px">
+          <input type="text" id="user-name" placeholder="أدخل اسمك للانضمام..." style="max-width:300px;text-align:center;margin:0 auto;display:block"/>
+        </div>
+        <div class="lobby-btns">
+          <button class="btn btn-danger" onclick="startLive()" id="btn-start-live">
+            <span class="live-dot" style="background:#fff"></span> بدء البث كمدرس
+          </button>
+          <button class="btn btn-green" onclick="joinLive()" id="btn-join-live">▶ انضمام كمشاهد/مشارك</button>
+        </div>
       </div>
     </div>
+
+    <!-- Active live session -->
+    <div id="live-session" style="display:none">
+      <div class="live-section">
+        <div class="live-header">
+          <div class="live-title">
+            <span class="live-pill"><span class="live-dot"></span>مباشر</span>
+            <span id="live-session-title">جلسة مباشرة</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span class="live-viewer-count" id="viewer-count">👥 1 مشارك</span>
+            <button class="btn btn-danger btn-sm" onclick="leaveLive()">✕ مغادرة البث</button>
+          </div>
+        </div>
+        <!-- Remote participants -->
+        <div class="remote-videos-grid" id="remote-videos">
+          <div class="waiting-msg" id="waiting-msg">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="#333" stroke-width="1.5"/><path d="M10 16h12M16 10v12" stroke="#333" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span style="color:#555">في انتظار المشاركين...</span>
+          </div>
+        </div>
+      </div>
+      <!-- Local preview in live mode -->
+      <div class="card" style="padding:10px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px;text-align:right">معاينتك (ما يراه الآخرون)</div>
+        <div class="cam-box" style="max-height:200px;aspect-ratio:16/9">
+          <video id="local-preview" autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>
+          <div class="cam-label" id="local-name-label">أنت</div>
+        </div>
+        <div class="cam-controls" style="margin-top:8px">
+          <button class="btn btn-gray btn-sm" id="btn-mute" onclick="toggleMic()">🎙️ كتم الميكروفون</button>
+          <button class="btn btn-gray btn-sm" id="btn-vid-off" onclick="toggleLocalVid()">📷 إيقاف الكاميرا</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ RECORDING ROW -->
     <div class="rec-row">
       <div class="rec-left">
         <div class="rec-dot" id="rec-dot"></div>
@@ -307,6 +338,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       </div>
     </div>
     <div class="up-prog" id="up-prog"><div class="up-fill" id="up-fill"></div></div>
+
+    <!-- ④ SESSION DETAILS -->
     <div class="card">
       <div class="card-title">تفاصيل الجلسة</div>
       <div class="form-group">
@@ -377,10 +410,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <!-- MODALS -->
 <div class="ov" id="ov-students" onclick="closeOv('ov-students')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="mh">
-      <button class="btn btn-primary btn-sm" onclick="saveStudents()">حفظ ومشاركة ✓</button>
-      <div class="mt">✏️ طلاب: <span id="modal-course-name"></span></div>
-    </div>
+    <div class="mh"><button class="btn btn-primary btn-sm" onclick="saveStudents()">حفظ ومشاركة ✓</button><div class="mt">✏️ طلاب: <span id="modal-course-name"></span></div></div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:10px">التغييرات تنعكس فوراً على الجميع</div>
     <div id="students-list"></div>
     <div class="div"></div>
@@ -392,10 +422,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </div>
 <div class="ov" id="ov-courses" onclick="closeOv('ov-courses')">
   <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
-    <div class="mh">
-      <button class="btn btn-primary btn-sm" onclick="saveCourses()">حفظ ومشاركة ✓</button>
-      <div class="mt">📚 تعديل المواد الدراسية</div>
-    </div>
+    <div class="mh"><button class="btn btn-primary btn-sm" onclick="saveCourses()">حفظ ومشاركة ✓</button><div class="mt">📚 تعديل المواد الدراسية</div></div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:10px">كل مادة لها قائمة طلاب مستقلة</div>
     <div id="courses-list"></div>
     <div class="div"></div>
@@ -419,14 +446,15 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div style="margin-top:6px;font-size:11px;color:var(--text2);text-align:right" id="vid-mm"></div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script>
-// ── Firebase ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// FIREBASE
+// ═══════════════════════════════════════════════════════════════
 firebase.initializeApp({
   apiKey:"AIzaSyBtHLJ8GVI24LnKAXfQ89qY0ZQE5dyas4I",
   authDomain:"luxor-class-v2.firebaseapp.com",
@@ -437,96 +465,22 @@ firebase.initializeApp({
 var db=firebase.firestore(), storage=firebase.storage();
 document.getElementById('cloud-status').style.display='inline-flex';
 
-// ── Utils ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════
 function pad(n){return String(n).length<2?'0'+n:String(n);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function ini(n){var p=n.trim().split(' ');return p.length>=2?p[0][0]+p[1][0]:n.slice(0,2);}
-var _tt;function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(_tt);_tt=setTimeout(function(){t.style.display='none';},3500);}
+var _tt;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(_tt);_tt=setTimeout(function(){t.style.display='none';},3500);}
 function openOv(id){document.getElementById(id).classList.add('open');}
 function closeOv(id){document.getElementById(id).classList.remove('open');}
 function showSync(on){document.getElementById('sync-ind').className='sync-ind'+(on?' on':'');}
-document.addEventListener('keydown',function(e){if(e.key==='Escape'||e.keyCode===27){['ov-students','ov-courses','ov-rename','ov-vid'].forEach(closeOv);closeVid();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){['ov-students','ov-courses','ov-rename','ov-vid'].forEach(closeOv);closeVid();}});
 
-// ── Daily.co ──────────────────────────────────────
-var DAILY_KEY='';
-var ROOM_NAME='luxor-classroom';
-var inSession=false;
-
-function loadDailyKey(){
-  var k=localStorage.getItem('daily_api_key');
-  if(k){DAILY_KEY=k;showLobby();}
-}
-
-function saveDailyKey(){
-  var k=document.getElementById('daily-key-inp').value.trim();
-  if(!k){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 API Key');return;}
-  DAILY_KEY=k;
-  localStorage.setItem('daily_api_key',k);
-  showLobby();
-  toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0645\u0641\u062a\u0627\u062d');
-}
-
-function showLobby(){
-  document.getElementById('daily-setup-banner').style.display='none';
-  document.getElementById('live-lobby').style.display='block';
-}
-
-function joinAsInstructor(){
-  var name=document.getElementById('participant-name').value.trim()||'\u0627\u0644\u0645\u062f\u0631\u0633';
-  createOrJoinRoom(name,true);
-}
-
-function joinAsStudent(){
-  var name=document.getElementById('participant-name').value.trim();
-  if(!name){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0623\u0648\u0644\u0627\u064b');return;}
-  createOrJoinRoom(name,false);
-}
-
-function createOrJoinRoom(name,isInstructor){
-  // Create room via Daily REST API, then load iframe
-  var url='https://api.daily.co/v1/rooms/'+ROOM_NAME;
-  fetch(url,{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+DAILY_KEY},
-    body:JSON.stringify({name:ROOM_NAME,properties:{enable_chat:true,enable_knocking:false,start_video_off:false,start_audio_off:false}})
-  })
-  .then(function(r){return r.json();})
-  .then(function(data){
-    // room may already exist — that's fine
-    var roomUrl=data.url||('https://'+ROOM_NAME+'.daily.co/'+ROOM_NAME);
-    loadDailyIframe(roomUrl,name,isInstructor);
-  })
-  .catch(function(){
-    // If CORS blocks the API call, fall back to joining directly
-    var roomUrl='https://'+ROOM_NAME+'.daily.co/'+ROOM_NAME;
-    loadDailyIframe(roomUrl,name,isInstructor);
-  });
-}
-
-function loadDailyIframe(roomUrl,name,isInstructor){
-  var src=roomUrl+'?userName='+encodeURIComponent(name)+(isInstructor?'&t=instructor':'');
-  document.getElementById('daily-iframe').src=src;
-  document.getElementById('live-lobby').style.display='none';
-  document.getElementById('live-session').style.display='block';
-  if(isInstructor) document.getElementById('dual-cam-card').style.display='block';
-  inSession=true;
-  document.getElementById('part-count').textContent='\u0645\u062a\u0635\u0644 \u0628\u0627\u0644\u063a\u0631\u0641\u0629...';
-  // Save room URL to Firebase so others joining see it
-  saveConfig('activeRoom',roomUrl);
-  toast('\u2705 \u062a\u0645 \u0627\u0644\u062f\u062e\u0648\u0644 \u0628\u0646\u062c\u0627\u062d');
-}
-
-function leaveSession(){
-  document.getElementById('daily-iframe').src='';
-  document.getElementById('live-session').style.display='none';
-  document.getElementById('dual-cam-card').style.display='none';
-  document.getElementById('live-lobby').style.display='block';
-  inSession=false;
-  stopAllCams();
-  toast('\u063a\u0627\u062f\u0631\u062a \u0627\u0644\u062c\u0644\u0633\u0629');
-}
-
-// ── Firebase config listener ──────────────────────
+// ═══════════════════════════════════════════════════════════════
+// FIREBASE CONFIG LISTENER  (title, logo, courses, students)
+// ═══════════════════════════════════════════════════════════════
 var courses=[];
 var courseStudents={};
 var activeCourse='';
@@ -538,24 +492,18 @@ function listenConfig(){
     if(!doc.exists){initDefaultConfig();return;}
     var d=doc.data();
     if(d.title){document.getElementById('ttl-d').textContent=d.title;document.title=d.title;}
-    if(d.logo)showLogo(d.logo); else hideLogo();
+    if(d.logo)showLogo(d.logo);else hideLogo();
     if(d.courses&&d.courses.length){courses=d.courses;renderCourseSelect(courses);renderCourseAttTabs(courses);}
     if(d.courseStudents)courseStudents=d.courseStudents;
     renderStudents();
   },function(){});
 }
+function saveConfig(field,value){var u={};u[field]=value;showSync(true);db.collection('config').doc('app').set(u,{merge:true}).then(function(){showSync(false);}).catch(function(e){showSync(false);toast('\u26a0\ufe0f '+e.message);});}
+function initDefaultConfig(){var cs={};DEFAULT_COURSES.forEach(function(c){cs[c]=DEFAULT_STUDENTS;});db.collection('config').doc('app').set({title:'\u0623\u062f\u0627\u0629 \u0627\u0644\u0641\u0635\u0644 \u0627\u0644\u062f\u0631\u0627\u0633\u064a',logo:'',courses:DEFAULT_COURSES,courseStudents:cs}).catch(function(){});}
 
-function saveConfig(field,value){
-  var u={};u[field]=value;showSync(true);
-  db.collection('config').doc('app').set(u,{merge:true}).then(function(){showSync(false);}).catch(function(e){showSync(false);toast('\u26a0\ufe0f '+e.message);});
-}
-
-function initDefaultConfig(){
-  var cs={};DEFAULT_COURSES.forEach(function(c){cs[c]=DEFAULT_STUDENTS;});
-  db.collection('config').doc('app').set({title:'\u0623\u062f\u0627\u0629 \u0627\u0644\u0641\u0635\u0644 \u0627\u0644\u062f\u0631\u0627\u0633\u064a',logo:'',courses:DEFAULT_COURSES,courseStudents:cs,activeRoom:''}).catch(function(){});
-}
-
-// ── Title / Logo ──────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// TITLE / LOGO
+// ═══════════════════════════════════════════════════════════════
 function startEditTitle(){var d=document.getElementById('ttl-d'),i=document.getElementById('ttl-i');i.value=d.textContent;d.style.display='none';i.style.display='inline-block';i.focus();i.select();}
 function saveTitle(){var i=document.getElementById('ttl-i'),d=document.getElementById('ttl-d');var v=i.value.trim()||'\u0623\u062f\u0627\u0629 \u0627\u0644\u0641\u0635\u0644 \u0627\u0644\u062f\u0631\u0627\u0633\u064a';d.textContent=v;document.title=v;i.style.display='none';d.style.display='inline-block';saveConfig('title',v);toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u0644\u0644\u062c\u0645\u064a\u0639');}
 function titleKD(e){if(e.key==='Enter')saveTitle();if(e.key==='Escape'){document.getElementById('ttl-i').style.display='none';document.getElementById('ttl-d').style.display='inline-block';}}
@@ -568,73 +516,376 @@ document.getElementById('app-logo').onclick=triggerLogo;
 document.getElementById('logo-ph').onclick=triggerLogo;
 document.getElementById('app-logo').oncontextmenu=function(e){e.preventDefault();if(confirm('\u062d\u0630\u0641 \u0627\u0644\u0634\u0639\u0627\u0631\u061f'))removeLogo();};
 
-// ── Dual Cameras ──────────────────────────────────
-var streams=[null,null],camOn=[true,true],availCams=[];
+// ═══════════════════════════════════════════════════════════════
+// DUAL CAMERAS
+// ═══════════════════════════════════════════════════════════════
+var streams=[null,null], camEnabled=[false,false], availCams=[];
 
-async function startBothCams(){
+async function openCameras(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('\u26a0\ufe0f \u0645\u062a\u0635\u0641\u062d\u0643 \u0644\u0627 \u064a\u062f\u0639\u0645 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627');return;}
   try{
+    // Request permission first
+    var testStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    testStream.getTracks().forEach(function(t){t.stop();});
     var devs=await navigator.mediaDevices.enumerateDevices();
     availCams=devs.filter(function(d){return d.kind==='videoinput';});
-    var s1=document.getElementById('sel-cam-1'),s2=document.getElementById('sel-cam-2');
-    [s1,s2].forEach(function(sel,idx){sel.innerHTML='';availCams.forEach(function(cam,i){var o=document.createElement('option');o.value=cam.deviceId;o.textContent=cam.label||'\u0643\u0627\u0645\u064a\u0631\u0627 '+(i+1);if(i===idx)o.selected=true;sel.appendChild(o);});});
-    document.getElementById('rec-cam-sel').innerHTML=s1.innerHTML;
+    if(!availCams.length){toast('\u0644\u0627 \u062a\u0648\u062c\u062f \u0643\u0627\u0645\u064a\u0631\u0627\u062a');return;}
+    // Populate selectors
+    ['sel-1','sel-2'].forEach(function(sid,idx){
+      var sel=document.getElementById(sid);sel.innerHTML='';
+      availCams.forEach(function(cam,i){
+        var o=document.createElement('option');o.value=cam.deviceId;
+        o.textContent=cam.label||('\u0643\u0627\u0645\u064a\u0631\u0627 '+(i+1));
+        if(i===idx)o.selected=true;
+        sel.appendChild(o);
+      });
+    });
+    // Also populate rec cam select
+    document.getElementById('rec-cam-sel-hidden'); // may not exist, skip
     document.getElementById('cam-sel-wrap').style.display='block';
-    document.getElementById('btn-start-cams').style.display='none';
-    document.getElementById('btn-stop-cams').style.display='';
-    await startCam(1,null);
-    await startCam(2,availCams.length>1?availCams[1].deviceId:null);
-  }catch(e){toast('\u26a0\ufe0f '+e.message);}
+    document.getElementById('btn-open-cams').style.display='none';
+    document.getElementById('btn-close-cams').style.display='';
+    // Start both
+    await activateCam(1,null);
+    await activateCam(2,availCams.length>1?availCams[1].deviceId:availCams[0].deviceId);
+    document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u0627\u0646 \u062c\u0627\u0647\u0632\u062a\u0627\u0646';
+    document.getElementById('btn-rec').disabled=false;
+    toast('\u2705 \u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u064a\u0646');
+  }catch(err){
+    var m='\u26a0\ufe0f ';
+    if(err.name==='NotAllowedError')m+='\u064a\u0631\u062c\u0649 \u0627\u0644\u0633\u0645\u0627\u062d \u0628\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627';
+    else if(err.name==='NotFoundError')m+='\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 \u0643\u0627\u0645\u064a\u0631\u0627';
+    else m+=err.message;
+    toast(m);
+  }
 }
 
-async function startCam(n,deviceId){
-  var idx=n-1;if(streams[idx]){streams[idx].getTracks().forEach(function(t){t.stop();});}
-  var c={video:deviceId?{deviceId:{exact:deviceId}}:{facingMode:'user'},audio:false};
+async function activateCam(n,deviceId){
+  var idx=n-1;
+  if(streams[idx]){streams[idx].getTracks().forEach(function(t){t.stop();});}
+  var constraints={video:deviceId?{deviceId:{exact:deviceId}}:{facingMode:'user'},audio:n===1};
   try{
-    var s=await navigator.mediaDevices.getUserMedia(c);
+    var s=await navigator.mediaDevices.getUserMedia(constraints);
     streams[idx]=s;
-    var v=document.getElementById('vid-'+n);v.srcObject=s;v.style.display='block';
+    var v=document.getElementById('vid-'+n);
+    v.srcObject=s;v.style.display='block';
     document.getElementById('cam-ph-'+n).style.display='none';
-    camOn[idx]=true;updateCamBtn(n,true);
+    document.getElementById('off-'+n).className='cam-off-cover';
+    camEnabled[idx]=true;
+    updateTogBtn(n,true);
   }catch(e){toast('\u0643\u0627\u0645\u064a\u0631\u0627 '+n+': '+e.message);}
 }
 
-async function switchCam(n){var d=document.getElementById('sel-cam-'+n).value;await startCam(n,d);}
-
-function toggleCam(n){var idx=n-1;if(!streams[idx])return;var vt=streams[idx].getVideoTracks()[0];if(!vt)return;camOn[idx]=!camOn[idx];vt.enabled=camOn[idx];document.getElementById('off-'+n).className='cam-off-ov'+(camOn[idx]?'':' on');updateCamBtn(n,camOn[idx]);}
-
-function updateCamBtn(n,on){var b=document.getElementById('btn-tog-'+n);if(on){b.textContent='\u23f8 \u0625\u064a\u0642\u0627\u0641 '+n;b.className='btn btn-gray btn-sm';}else{b.textContent='\u25b6 \u062a\u0634\u063a\u064a\u0644 '+n;b.className='btn btn-green btn-sm';}}
-
-function swapCams(){var t=document.getElementById('vid-1').srcObject;document.getElementById('vid-1').srcObject=document.getElementById('vid-2').srcObject;document.getElementById('vid-2').srcObject=t;var ts=streams[0];streams[0]=streams[1];streams[1]=ts;toast('\u062a\u0645 \u062a\u0628\u062f\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u064a\u0646');}
-
-function stopAllCams(){[0,1].forEach(function(i){if(streams[i]){streams[i].getTracks().forEach(function(t){t.stop();});streams[i]=null;}});[1,2].forEach(function(n){document.getElementById('vid-'+n).style.display='none';document.getElementById('cam-ph-'+n).style.display='flex';document.getElementById('off-'+n).className='cam-off-ov';});document.getElementById('cam-sel-wrap').style.display='none';document.getElementById('btn-start-cams').style.display='';document.getElementById('btn-stop-cams').style.display='none';if(recStream){recStream.getTracks().forEach(function(t){t.stop();});recStream=null;}document.getElementById('rec-live-vid').style.display='none';document.getElementById('rec-cam-ph').style.display='flex';}
-
-// ── Record Camera ─────────────────────────────────
-var recStream=null;
-async function startRecCam(){
-  var deviceId=document.getElementById('rec-cam-sel').value;
-  var c={video:deviceId?{deviceId:{exact:deviceId},width:{ideal:1280},height:{ideal:720}}:{width:{ideal:1280},height:{ideal:720}},audio:true};
-  try{
-    if(recStream)recStream.getTracks().forEach(function(t){t.stop();});
-    recStream=await navigator.mediaDevices.getUserMedia(c);
-    if(!availCams.length){var devs=await navigator.mediaDevices.enumerateDevices();availCams=devs.filter(function(d){return d.kind==='videoinput';});var sel=document.getElementById('rec-cam-sel');sel.innerHTML='';availCams.forEach(function(cam,i){var o=document.createElement('option');o.value=cam.deviceId;o.textContent=cam.label||'\u0643\u0627\u0645\u064a\u0631\u0627 '+(i+1);sel.appendChild(o);});}
-    var v=document.getElementById('rec-live-vid');v.srcObject=recStream;v.style.display='block';
-    document.getElementById('rec-cam-ph').style.display='none';
-    document.getElementById('btn-rec').disabled=false;
-    document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u062c\u0627\u0647\u0632\u0629';
-    toast('\u2705 \u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u062c\u0627\u0647\u0632\u0629');
-  }catch(e){toast('\u26a0\ufe0f '+e.message);}
+async function switchCam(n){
+  var d=document.getElementById('sel-'+n).value;
+  await activateCam(n,d);
 }
 
-// ── Recording ─────────────────────────────────────
-var mr=null,chunks=[],isRec=false,timerInt=null,elapsed=0,pendingBlob=null;
+function toggleCam(n){
+  var idx=n-1;
+  if(!streams[idx])return;
+  var vt=streams[idx].getVideoTracks()[0];if(!vt)return;
+  camEnabled[idx]=!camEnabled[idx];
+  vt.enabled=camEnabled[idx];
+  document.getElementById('off-'+n).className='cam-off-cover'+(camEnabled[idx]?'':' show');
+  updateTogBtn(n,camEnabled[idx]);
+  toast('\u0643\u0627\u0645\u064a\u0631\u0627 '+n+(camEnabled[idx]?' \u0634\u063a\u0627\u0644\u0629':' \u0645\u062a\u0648\u0642\u0641\u0629'));
+}
+
+function updateTogBtn(n,on){
+  var b=document.getElementById('btn-tog-'+n);
+  if(on){b.textContent='\u23f8 \u0625\u064a\u0642\u0627\u0641 '+n;b.className='btn btn-gray btn-sm';}
+  else{b.textContent='\u25b6 \u062a\u0634\u063a\u064a\u0644 '+n;b.className='btn btn-green btn-sm';}
+}
+
+function swapCams(){
+  var t=document.getElementById('vid-1').srcObject;
+  document.getElementById('vid-1').srcObject=document.getElementById('vid-2').srcObject;
+  document.getElementById('vid-2').srcObject=t;
+  var ts=streams[0];streams[0]=streams[1];streams[1]=ts;
+  var te=camEnabled[0];camEnabled[0]=camEnabled[1];camEnabled[1]=te;
+  toast('\u062a\u0645 \u062a\u0628\u062f\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u064a\u0646');
+}
+
+function closeCameras(){
+  [0,1].forEach(function(i){if(streams[i]){streams[i].getTracks().forEach(function(t){t.stop();});streams[i]=null;}camEnabled[i]=false;});
+  [1,2].forEach(function(n){
+    document.getElementById('vid-'+n).style.display='none';
+    document.getElementById('cam-ph-'+n).style.display='flex';
+    document.getElementById('off-'+n).className='cam-off-cover';
+  });
+  document.getElementById('cam-sel-wrap').style.display='none';
+  document.getElementById('btn-open-cams').style.display='';
+  document.getElementById('btn-close-cams').style.display='none';
+  document.getElementById('btn-rec').disabled=true;
+  document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u063a\u064a\u0631 \u0645\u0641\u0639\u0651\u0644\u0629';
+  // stop rec stream too
+  if(recStream){recStream.getTracks().forEach(function(t){t.stop();});recStream=null;}
+  toast('\u062a\u0645 \u0625\u063a\u0644\u0627\u0642 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627\u062a');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WEBRTC LIVE STREAMING  (Firebase Firestore as signaling server)
+// Each session: a "room" doc in Firestore
+// Instructor creates room + offers to each joiner
+// Joiners answer with their SDP
+// ═══════════════════════════════════════════════════════════════
+var ROOM_ID='luxor-live-room-v1';
+var localStream=null;
+var peerConnections={};   // peerId -> RTCPeerConnection
+var myPeerId=null;
+var isInstructor=false;
+var inLive=false;
+var micMuted=false;
+var vidOff=false;
+var roomUnsub=null;
+var offerUnsub=null;
+var answerUnsub=null;
+var iceCandUnsub=null;
+
+var ICE_SERVERS={iceServers:[
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun1.l.google.com:19302'},
+  {urls:'stun:stun2.l.google.com:19302'}
+]};
+
+function genId(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36);}
+
+async function startLive(){
+  var name=document.getElementById('user-name').value.trim()||'\u0627\u0644\u0645\u062f\u0631\u0633';
+  if(!streams[0]&&!streams[1]){toast('\u0634\u063a\u0651\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627\u062a \u0623\u0648\u0644\u0627\u064b');return;}
+  isInstructor=true;
+  // Use camera 1 stream (with audio) as local stream for live
+  localStream=streams[0]||streams[1];
+  if(!localStream){toast('\u0644\u0627 \u062a\u0648\u062c\u062f \u0643\u0627\u0645\u064a\u0631\u0627 \u0646\u0634\u0637\u0629');return;}
+  await _joinRoom(name);
+}
+
+async function joinLive(){
+  var name=document.getElementById('user-name').value.trim();
+  if(!name){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0623\u0648\u0644\u0627\u064b');return;}
+  isInstructor=false;
+  try{
+    localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+  }catch(e){
+    try{localStream=await navigator.mediaDevices.getUserMedia({video:false,audio:true});}
+    catch(e2){toast('\u0644\u0627 \u064a\u0645\u0643\u0646 \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0623\u0648 \u0627\u0644\u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646');return;}
+  }
+  await _joinRoom(name);
+}
+
+async function _joinRoom(name){
+  myPeerId=genId();
+  inLive=true;
+
+  // Show local preview
+  var prev=document.getElementById('local-preview');
+  prev.srcObject=localStream;
+  document.getElementById('local-name-label').textContent=name;
+
+  // UI switch
+  document.getElementById('live-lobby').style.display='none';
+  document.getElementById('live-session').style.display='block';
+  document.getElementById('live-session-title').textContent=document.getElementById('ses-title').value.trim()||'\u062c\u0644\u0633\u0629 \u0645\u0628\u0627\u0634\u0631\u0629';
+
+  // Register self in room
+  var roomRef=db.collection('liveRooms').doc(ROOM_ID);
+  await roomRef.set({active:true,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  await roomRef.collection('peers').doc(myPeerId).set({name:name,role:isInstructor?'instructor':'student',joinedAt:firebase.firestore.FieldValue.serverTimestamp()});
+
+  // Listen for existing peers and connect to them
+  var peersSnap=await roomRef.collection('peers').get();
+  var existingPeers=[];
+  peersSnap.forEach(function(doc){if(doc.id!==myPeerId)existingPeers.push({id:doc.id,data:doc.data()});});
+
+  // Connect to each existing peer
+  for(var i=0;i<existingPeers.length;i++){
+    await _createOffer(existingPeers[i].id,existingPeers[i].data.name,roomRef);
+  }
+
+  // Listen for new peers joining after us
+  offerUnsub=roomRef.collection('peers').onSnapshot(function(snap){
+    snap.docChanges().forEach(async function(change){
+      if(change.type==='added'&&change.doc.id!==myPeerId&&!peerConnections[change.doc.id]){
+        // New peer joined — they will send us an offer or we send them one
+        // To avoid double-offers, lower peerId sends the offer
+        if(myPeerId<change.doc.id){
+          await _createOffer(change.doc.id,change.doc.data().name,roomRef);
+        }
+      }
+      if(change.type==='removed'){
+        _removePeer(change.doc.id);
+      }
+    });
+    // Update count
+    var count=snap.size;
+    document.getElementById('viewer-count').textContent='\u{1F465} '+count+' \u0645\u0634\u0627\u0631\u0643'+(count===1?'':'\u064a\u0646');
+  });
+
+  // Listen for offers addressed to me
+  answerUnsub=roomRef.collection('signals').where('to','==',myPeerId).where('type','==','offer')
+    .onSnapshot(function(snap){
+      snap.docChanges().forEach(async function(change){
+        if(change.type==='added'){
+          var sig=change.doc.data();
+          await _handleOffer(sig.from,sig.fromName,sig.sdp,roomRef);
+          change.doc.ref.delete();
+        }
+      });
+    });
+
+  // Listen for answers addressed to me
+  roomRef.collection('signals').where('to','==',myPeerId).where('type','==','answer')
+    .onSnapshot(function(snap){
+      snap.docChanges().forEach(async function(change){
+        if(change.type==='added'){
+          var sig=change.doc.data();
+          var pc=peerConnections[sig.from];
+          if(pc&&pc.signalingState==='have-local-offer'){
+            await pc.setRemoteDescription({type:'answer',sdp:sig.sdp});
+          }
+          change.doc.ref.delete();
+        }
+      });
+    });
+
+  // Listen for ICE candidates addressed to me
+  roomRef.collection('signals').where('to','==',myPeerId).where('type','==','ice')
+    .onSnapshot(function(snap){
+      snap.docChanges().forEach(function(change){
+        if(change.type==='added'){
+          var sig=change.doc.data();
+          var pc=peerConnections[sig.from];
+          if(pc)pc.addIceCandidate(new RTCIceCandidate(sig.candidate)).catch(function(){});
+          change.doc.ref.delete();
+        }
+      });
+    });
+
+  toast('\u2705 \u062f\u062e\u0644\u062a \u0627\u0644\u0628\u062b \u0628\u0646\u062c\u0627\u062d');
+}
+
+async function _createOffer(peerId,peerName,roomRef){
+  var pc=_makePeerConnection(peerId,peerName,roomRef);
+  // Add local tracks
+  localStream.getTracks().forEach(function(t){pc.addTrack(t,localStream);});
+  var offer=await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await roomRef.collection('signals').add({type:'offer',from:myPeerId,fromName:document.getElementById('user-name').value.trim()||'\u0645\u0634\u0627\u0631\u0643',to:peerId,sdp:offer.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
+}
+
+async function _handleOffer(peerId,peerName,sdp,roomRef){
+  var pc=_makePeerConnection(peerId,peerName,roomRef);
+  localStream.getTracks().forEach(function(t){pc.addTrack(t,localStream);});
+  await pc.setRemoteDescription({type:'offer',sdp:sdp});
+  var answer=await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  await roomRef.collection('signals').add({type:'answer',from:myPeerId,to:peerId,sdp:answer.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
+}
+
+function _makePeerConnection(peerId,peerName,roomRef){
+  var pc=new RTCPeerConnection(ICE_SERVERS);
+  peerConnections[peerId]=pc;
+
+  pc.onicecandidate=function(e){
+    if(e.candidate){
+      roomRef.collection('signals').add({type:'ice',from:myPeerId,to:peerId,candidate:e.candidate.toJSON(),ts:firebase.firestore.FieldValue.serverTimestamp()});
+    }
+  };
+
+  pc.ontrack=function(e){
+    _addRemoteVideo(peerId,peerName,e.streams[0]);
+  };
+
+  pc.onconnectionstatechange=function(){
+    if(pc.connectionState==='failed'||pc.connectionState==='disconnected'){
+      _removePeer(peerId);
+    }
+  };
+
+  return pc;
+}
+
+function _addRemoteVideo(peerId,peerName,stream){
+  var existing=document.getElementById('rv-'+peerId);
+  if(existing){existing.srcObject=stream;return;}
+  document.getElementById('waiting-msg').style.display='none';
+  var wrap=document.createElement('div');wrap.className='remote-video-wrap';wrap.id='rv-wrap-'+peerId;
+  var v=document.createElement('video');v.id='rv-'+peerId;v.autoplay=true;v.playsinline=true;v.srcObject=stream;
+  var lbl=document.createElement('div');lbl.className='remote-name';lbl.textContent=peerName||'\u0645\u0634\u0627\u0631\u0643';
+  wrap.appendChild(v);wrap.appendChild(lbl);
+  document.getElementById('remote-videos').appendChild(wrap);
+}
+
+function _removePeer(peerId){
+  var pc=peerConnections[peerId];
+  if(pc){pc.close();delete peerConnections[peerId];}
+  var wrap=document.getElementById('rv-wrap-'+peerId);
+  if(wrap)wrap.remove();
+  if(!document.getElementById('remote-videos').querySelector('.remote-video-wrap')){
+    document.getElementById('waiting-msg').style.display='flex';
+  }
+}
+
+async function leaveLive(){
+  inLive=false;
+  // Close all peer connections
+  Object.keys(peerConnections).forEach(function(id){try{peerConnections[id].close();}catch(e){}});
+  peerConnections={};
+  // Remove self from room
+  try{await db.collection('liveRooms').doc(ROOM_ID).collection('peers').doc(myPeerId).delete();}catch(e){}
+  // Unsubscribe listeners
+  if(offerUnsub)offerUnsub();if(answerUnsub)answerUnsub();if(iceCandUnsub)iceCandUnsub();
+  // Stop local stream (if not cameras stream)
+  if(localStream&&localStream!==streams[0]&&localStream!==streams[1]){localStream.getTracks().forEach(function(t){t.stop();});}
+  localStream=null;myPeerId=null;
+  // Clear remote videos
+  document.getElementById('remote-videos').innerHTML='<div class="waiting-msg" id="waiting-msg"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="#333" stroke-width="1.5"/></svg><span style="color:#555">\u0641\u064a \u0627\u0646\u062a\u0638\u0627\u0631 \u0627\u0644\u0645\u0634\u0627\u0631\u0643\u064a\u0646...</span></div>';
+  // UI back to lobby
+  document.getElementById('live-session').style.display='none';
+  document.getElementById('live-lobby').style.display='block';
+  // Stop local preview
+  var prev=document.getElementById('local-preview');prev.srcObject=null;
+  toast('\u063a\u0627\u062f\u0631\u062a \u0627\u0644\u0628\u062b');
+}
+
+function toggleMic(){
+  if(!localStream)return;
+  var at=localStream.getAudioTracks()[0];if(!at)return;
+  micMuted=!micMuted;at.enabled=!micMuted;
+  var btn=document.getElementById('btn-mute');
+  btn.textContent=micMuted?'\u{1F507} \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646':'\u{1F399}\ufe0f \u0643\u062a\u0645 \u0627\u0644\u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646';
+  toast(micMuted?'\u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646 \u0645\u0643\u062a\u0648\u0645':'\u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646 \u0645\u0641\u0639\u0651\u0644');
+}
+
+function toggleLocalVid(){
+  if(!localStream)return;
+  var vt=localStream.getVideoTracks()[0];if(!vt)return;
+  vidOff=!vidOff;vt.enabled=!vidOff;
+  var btn=document.getElementById('btn-vid-off');
+  btn.textContent=vidOff?'\u{1F4F7} \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627':'\u{1F4F7} \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627';
+  toast(vidOff?'\u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u0628\u062b \u0645\u062a\u0648\u0642\u0641\u0629':'\u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u0628\u062b \u0634\u063a\u0627\u0644\u0629');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RECORDING (uses cam1 stream)
+// ═══════════════════════════════════════════════════════════════
+var recStream=null, mr=null, chunks=[], isRec=false, timerInt=null, elapsed=0, pendingBlob=null;
 function getMime(){var t=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'];if(typeof MediaRecorder==='undefined')return'';for(var i=0;i<t.length;i++)if(MediaRecorder.isTypeSupported(t[i]))return t[i];return'';}
+
+function getRecStream(){
+  // Prefer cam1 (has audio), fallback cam2
+  return streams[0]||streams[1];
+}
+
 function toggleRec(){
   if(!isRec){
-    if(!recStream){toast('\u0634\u063a\u0651\u0644 \u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u0623\u0648\u0644\u0627\u064b');return;}
+    recStream=getRecStream();
+    if(!recStream){toast('\u0634\u063a\u0651\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627\u062a \u0623\u0648\u0644\u0627\u064b');return;}
     chunks=[];var mime=getMime();
     try{mr=new MediaRecorder(recStream,mime?{mimeType:mime}:{});}catch(e){try{mr=new MediaRecorder(recStream);}catch(e2){toast('\u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');return;}}
     mr.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data);};
-    mr.onstop=function(){pendingBlob=new Blob(chunks,{type:mr.mimeType||'video/webm'});document.getElementById('btn-save-rec').style.display='';document.getElementById('btn-discard').style.display='';document.getElementById('rec-status').textContent='\u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u062c\u0627\u0647\u0632';};
+    mr.onstop=function(){pendingBlob=new Blob(chunks,{type:mr.mimeType||'video/webm'});document.getElementById('btn-save-rec').style.display='';document.getElementById('btn-discard').style.display='';document.getElementById('rec-status').textContent='\u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u062c\u0627\u0647\u0632 \u2014 \u0627\u062d\u0641\u0638\u0647 \u0623\u0648 \u0627\u062d\u0630\u0641\u0647';};
     mr.start(1000);isRec=true;elapsed=0;
     document.getElementById('rec-dot').style.display='inline-block';
     document.getElementById('btn-rec').innerHTML='<span class="spin"></span> \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u062a\u0633\u062c\u064a\u0644';
@@ -642,12 +893,14 @@ function toggleRec(){
     document.getElementById('rec-status').textContent='\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u0633\u062c\u064a\u0644...';
     timerInt=setInterval(function(){elapsed++;document.getElementById('timer').textContent=pad(Math.floor(elapsed/3600))+':'+pad(Math.floor((elapsed%3600)/60))+':'+pad(elapsed%60);},1000);
   }else{
-    isRec=false;clearInterval(timerInt);if(mr&&mr.state!=='inactive')try{mr.stop();}catch(e){}
+    isRec=false;clearInterval(timerInt);
+    if(mr&&mr.state!=='inactive')try{mr.stop();}catch(e){}
     document.getElementById('rec-dot').style.display='none';
     document.getElementById('btn-rec').textContent='\u25b6 \u0628\u062f\u0621 \u0627\u0644\u062a\u0633\u062c\u064a\u0644';
     document.getElementById('btn-rec').className='btn btn-primary';
   }
 }
+
 function saveSession(){
   if(!pendingBlob){toast('\u0644\u0627 \u064a\u0648\u062c\u062f \u062a\u0633\u062c\u064a\u0644');return;}
   var title=document.getElementById('ses-title').value.trim()||'\u062c\u0644\u0633\u0629 \u0628\u062f\u0648\u0646 \u0639\u0646\u0648\u0627\u0646';
@@ -660,65 +913,109 @@ function saveSession(){
   var btn=document.getElementById('btn-save-rec');btn.disabled=true;btn.innerHTML='<span class="spin"></span> \u062c\u0627\u0631\u064d \u0627\u0644\u0631\u0641\u0639...';
   document.getElementById('up-prog').style.display='block';document.getElementById('up-fill').style.width='5%';
   var task=storage.ref(path).put(pendingBlob);
-  task.on('state_changed',function(s){document.getElementById('up-fill').style.width=Math.round((s.bytesTransferred/s.totalBytes)*100)+'%';},
+  task.on('state_changed',
+    function(s){document.getElementById('up-fill').style.width=Math.round((s.bytesTransferred/s.totalBytes)*100)+'%';},
     function(e){toast('\u26a0\ufe0f '+e.message);btn.disabled=false;btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';document.getElementById('up-prog').style.display='none';},
-    function(){task.snapshot.ref.getDownloadURL().then(function(url){return db.collection('recordings').add({title:title,course:course,notes:notes,duration:dur,date:d.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'}),time:d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),videoUrl:url,storagePath:path,size:Math.round(pendingBlob.size/1024),createdAt:firebase.firestore.FieldValue.serverTimestamp()});}).then(function(){document.getElementById('up-fill').style.width='100%';pendingBlob=null;document.getElementById('btn-save-rec').style.display='none';document.getElementById('btn-discard').style.display='none';btn.disabled=false;btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';document.getElementById('ses-title').value='';document.getElementById('ses-notes').value='';document.getElementById('timer').textContent='00:00:00';document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u062c\u0627\u0647\u0632\u0629';setTimeout(function(){document.getElementById('up-prog').style.display='none';document.getElementById('up-fill').style.width='0%';},600);loadHistory();toast('\u2705 \u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');}).catch(function(e){toast('\u26a0\ufe0f '+e.message);btn.disabled=false;btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';document.getElementById('up-prog').style.display='none';});});
+    function(){
+      task.snapshot.ref.getDownloadURL().then(function(url){
+        return db.collection('recordings').add({title:title,course:course,notes:notes,duration:dur,date:d.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'}),time:d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),videoUrl:url,storagePath:path,size:Math.round(pendingBlob.size/1024),createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      }).then(function(){
+        document.getElementById('up-fill').style.width='100%';pendingBlob=null;
+        document.getElementById('btn-save-rec').style.display='none';document.getElementById('btn-discard').style.display='none';
+        btn.disabled=false;btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';
+        document.getElementById('ses-title').value='';document.getElementById('ses-notes').value='';
+        document.getElementById('timer').textContent='00:00:00';document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u0627\u0646 \u062c\u0627\u0647\u0632\u062a\u0627\u0646';
+        setTimeout(function(){document.getElementById('up-prog').style.display='none';document.getElementById('up-fill').style.width='0%';},600);
+        loadHistory();toast('\u2705 \u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');
+      }).catch(function(e){toast('\u26a0\ufe0f '+e.message);btn.disabled=false;btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';document.getElementById('up-prog').style.display='none';});
+    }
+  );
 }
-function discardRec(){pendingBlob=null;document.getElementById('btn-save-rec').style.display='none';document.getElementById('btn-discard').style.display='none';document.getElementById('timer').textContent='00:00:00';document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u062c\u0627\u0647\u0632\u0629';toast('\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');}
+function discardRec(){pendingBlob=null;document.getElementById('btn-save-rec').style.display='none';document.getElementById('btn-discard').style.display='none';document.getElementById('timer').textContent='00:00:00';document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u0627\u0646 \u062c\u0627\u0647\u0632\u062a\u0627\u0646';toast('\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');}
 
-// ── Courses ───────────────────────────────────────
-var attendance={};var stuCounter=9;var avC=['av-a','av-b','av-c','av-d','av-e','av-f','av-g','av-h'];
+// ═══════════════════════════════════════════════════════════════
+// COURSES & STUDENTS
+// ═══════════════════════════════════════════════════════════════
 function renderCourseSelect(list){var sel=document.getElementById('ses-course'),prev=sel.value;sel.innerHTML='';list.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;if(c===prev)o.selected=true;sel.appendChild(o);});}
 function renderCourseAttTabs(list){var wrap=document.getElementById('course-att-tabs');wrap.innerHTML='';list.forEach(function(c){var btn=document.createElement('button');btn.className='cat'+(c===activeCourse?' active':'');btn.textContent=c;btn.onclick=function(){activeCourse=c;document.querySelectorAll('.cat').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');attendance={};renderStudents();};wrap.appendChild(btn);});if(!activeCourse&&list.length)activeCourse=list[0];}
 function getStudents(c){return courseStudents[c]||[];}
-function renderStudents(){var list=document.getElementById('student-list');list.innerHTML='';var sts=getStudents(activeCourse);if(!sts.length){list.innerHTML='<div class="no-stu">\u0644\u0627 \u064a\u0648\u062c\u062f \u0637\u0644\u0627\u0628 \u0644\u0647\u0630\u0647 \u0627\u0644\u0645\u0627\u062f\u0629 \u2014 \u0627\u0636\u063a\u0637 "\u062a\u0639\u062f\u064a\u0644 \u0637\u0644\u0627\u0628 \u0647\u0630\u0647 \u0627\u0644\u0645\u0627\u062f\u0629"</div>';updateCnt();return;}sts.forEach(function(s){var st=attendance[s.id]||'none',row=document.createElement('div');row.className='s-row';row.innerHTML='<div class="att-btns"><button class="att-btn '+(st==='present'?'present':'')+'" onclick="mark(\''+s.id+'\',\'present\')">\u062d\u0627\u0636\u0631</button><button class="att-btn '+(st==='late'?'late':'')+'" onclick="mark(\''+s.id+'\',\'late\')">\u0645\u062a\u0623\u062e\u0631</button><button class="att-btn '+(st==='absent'?'absent':'')+'" onclick="mark(\''+s.id+'\',\'absent\')">\u063a\u0627\u0626\u0628</button></div><div class="s-info"><div class="s-name">'+esc(s.name)+'</div><div class="s-id">'+s.id+'</div></div><div class="av '+s.av+'">'+ini(s.name)+'</div>';list.appendChild(row);});updateCnt();}
+
+var attendance={}, stuCounter=9;
+var avC=['av-a','av-b','av-c','av-d','av-e','av-f','av-g','av-h'];
+
+function renderStudents(){
+  var list=document.getElementById('student-list');list.innerHTML='';
+  var sts=getStudents(activeCourse);
+  if(!sts.length){list.innerHTML='<div class="no-stu">\u0644\u0627 \u064a\u0648\u062c\u062f \u0637\u0644\u0627\u0628 \u0644\u0647\u0630\u0647 \u0627\u0644\u0645\u0627\u062f\u0629 \u2014 \u0627\u0636\u063a\u0637 "\u062a\u0639\u062f\u064a\u0644 \u0637\u0644\u0627\u0628 \u0647\u0630\u0647 \u0627\u0644\u0645\u0627\u062f\u0629"</div>';updateCnt();return;}
+  sts.forEach(function(s){var st=attendance[s.id]||'none',row=document.createElement('div');row.className='s-row';row.innerHTML='<div class="att-btns"><button class="att-btn '+(st==='present'?'present':'')+'" onclick="mark(\''+s.id+'\',\'present\')">\u062d\u0627\u0636\u0631</button><button class="att-btn '+(st==='late'?'late':'')+'" onclick="mark(\''+s.id+'\',\'late\')">\u0645\u062a\u0623\u062e\u0631</button><button class="att-btn '+(st==='absent'?'absent':'')+'" onclick="mark(\''+s.id+'\',\'absent\')">\u063a\u0627\u0626\u0628</button></div><div class="s-info"><div class="s-name">'+esc(s.name)+'</div><div class="s-id">'+s.id+'</div></div><div class="av '+s.av+'">'+ini(s.name)+'</div>';list.appendChild(row);});
+  updateCnt();
+}
 function mark(id,st){attendance[id]=attendance[id]===st?'none':st;renderStudents();}
 function markAll(st){getStudents(activeCourse).forEach(function(s){attendance[s.id]=st;});renderStudents();}
 function updateCnt(){var sts=getStudents(activeCourse);var p=0,a=0,l=0;sts.forEach(function(s){var v=attendance[s.id]||'none';if(v==='present')p++;else if(v==='absent')a++;else if(v==='late')l++;});document.getElementById('cnt-p').textContent=p;document.getElementById('cnt-a').textContent=a;document.getElementById('cnt-l').textContent=l;}
-function submitAtt(){var sts=getStudents(activeCourse);if(!sts.length){toast('\u0644\u0627 \u064a\u0648\u062c\u062f \u0637\u0644\u0627\u0628 \u0644\u0647\u0630\u0647 \u0627\u0644\u0645\u0627\u062f\u0629');return;}var unm=sts.filter(function(s){return!attendance[s.id]||attendance[s.id]==='none';});if(unm.length>0){toast('\u26a0\ufe0f '+unm.length+' \u0637\u0627\u0644\u0628 \u0644\u0645 \u064a\u064f\u0633\u062c\u0651\u0644');return;}var d=new Date();var pr=0,la=0,ab=0;sts.forEach(function(s){var v=attendance[s.id];if(v==='present')pr++;else if(v==='late')la++;else if(v==='absent')ab++;});var rate=Math.round(((pr+la)/sts.length)*100);var snap={};sts.forEach(function(s){snap[s.id]={name:s.name,status:attendance[s.id]||'none'};});var title=document.getElementById('ses-title').value.trim()||'\u062c\u0644\u0633\u0629';db.collection('attendance').add({title:title,course:activeCourse,date:d.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'}),present:pr,late:la,absent:ab,total:sts.length,rate:rate,snapshot:snap,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){sts.forEach(function(s){attendance[s.id]='none';});renderStudents();loadHistory();toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0633\u062c\u0644 \u0627\u0644\u062d\u0636\u0648\u0631');}).catch(function(e){toast('\u26a0\ufe0f '+e.message);});}
+function submitAtt(){var sts=getStudents(activeCourse);if(!sts.length){toast('\u0644\u0627 \u064a\u0648\u062c\u062f \u0637\u0644\u0627\u0628');return;}var unm=sts.filter(function(s){return!attendance[s.id]||attendance[s.id]==='none';});if(unm.length){toast('\u26a0\ufe0f '+unm.length+' \u0637\u0627\u0644\u0628 \u0644\u0645 \u064a\u064f\u0633\u062c\u0651\u0644');return;}var d=new Date();var pr=0,la=0,ab=0;sts.forEach(function(s){var v=attendance[s.id];if(v==='present')pr++;else if(v==='late')la++;else if(v==='absent')ab++;});var rate=Math.round(((pr+la)/sts.length)*100);var snap={};sts.forEach(function(s){snap[s.id]={name:s.name,status:attendance[s.id]||'none'};});var title=document.getElementById('ses-title').value.trim()||'\u062c\u0644\u0633\u0629';db.collection('attendance').add({title:title,course:activeCourse,date:d.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'}),present:pr,late:la,absent:ab,total:sts.length,rate:rate,snapshot:snap,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){sts.forEach(function(s){attendance[s.id]='none';});renderStudents();loadHistory();toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0633\u062c\u0644 \u0627\u0644\u062d\u0636\u0648\u0631');}).catch(function(e){toast('\u26a0\ufe0f '+e.message);});}
 
-// ── Students Modal ────────────────────────────────
 function openStudentsModal(){document.getElementById('modal-course-name').textContent=activeCourse;var sts=getStudents(activeCourse);var list=document.getElementById('students-list');list.innerHTML='';sts.forEach(function(s,i){addStuRow(s.name,s.id,s.av,i);});openOv('ov-students');}
 function addStuRow(name,id,av,idx){var list=document.getElementById('students-list');var row=document.createElement('div');row.className='er';var num=document.createElement('span');num.className='en';num.textContent=(typeof idx==='number'?idx:list.children.length)+1;var inp=document.createElement('input');inp.type='text';inp.value=name||'';inp.placeholder='\u0627\u0633\u0645 \u0627\u0644\u0637\u0627\u0644\u0628';if(id)inp.setAttribute('data-id',id);if(av)inp.setAttribute('data-av',av);var del=document.createElement('button');del.textContent='\u062d\u0630\u0641';del.style.cssText='background:var(--red-bg);border:1px solid #d96060;color:var(--red-text);border-radius:4px;cursor:pointer;padding:4px 8px;font-size:11px;font-family:inherit;appearance:none';del.onclick=function(){row.remove();renumStu();};row.appendChild(num);row.appendChild(inp);row.appendChild(del);list.appendChild(row);}
 function addStudentRow(){var id='S'+pad(stuCounter++);var av=avC[document.getElementById('students-list').children.length%avC.length];addStuRow('',id,av);var ins=document.querySelectorAll('#students-list input');if(ins.length)ins[ins.length-1].focus();}
 function renumStu(){document.querySelectorAll('#students-list .er').forEach(function(r,i){var n=r.querySelector('.en');if(n)n.textContent=i+1;});}
-function saveStudents(){var inputs=document.querySelectorAll('#students-list input');var newStu=[];inputs.forEach(function(inp,i){var name=inp.value.trim();if(!name)return;var id=inp.getAttribute('data-id')||('S'+pad(stuCounter++));var av=inp.getAttribute('data-av')||avC[i%avC.length];newStu.push({id:id,name:name,av:av});});if(!newStu.length){toast('\u26a0\ufe0f \u0623\u0636\u0641 \u0637\u0627\u0644\u0628\u0627\u064b \u0648\u0627\u062d\u062f\u0627\u064b');return;}courseStudents[activeCourse]=newStu;saveConfig('courseStudents',courseStudents);closeOv('ov-students');toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0637\u0644\u0627\u0628 '+activeCourse+' \u0644\u0644\u062c\u0645\u064a\u0639');}
+function saveStudents(){var inputs=document.querySelectorAll('#students-list input');var newStu=[];inputs.forEach(function(inp,i){var name=inp.value.trim();if(!name)return;var id=inp.getAttribute('data-id')||('S'+pad(stuCounter++));var av=inp.getAttribute('data-av')||avC[i%avC.length];newStu.push({id:id,name:name,av:av});});if(!newStu.length){toast('\u26a0\ufe0f \u0623\u0636\u0641 \u0637\u0627\u0644\u0628\u0627\u064b');return;}courseStudents[activeCourse]=newStu;saveConfig('courseStudents',courseStudents);closeOv('ov-students');toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0637\u0644\u0627\u0628 '+activeCourse+' \u0644\u0644\u062c\u0645\u064a\u0639');}
 
-// ── Courses Modal ─────────────────────────────────
-function openCoursesModal(){var list=document.getElementById('courses-list');list.innerHTML='';(courses.length?courses:DEFAULT_COURSES).forEach(function(c,i){addCrRow(c,i);});openOv('ov-courses');}
+function openCoursesModal(){var list=document.getElementById('courses-list');list.innerHTML='';(courses.length?courses:DEFAULT_COURSES).forEach(function(c){addCrRow(c);});openOv('ov-courses');}
 var dragSrc=null;
 function addCrRow(val){var list=document.getElementById('courses-list');var row=document.createElement('div');row.className='cr';row.draggable=true;var dh=document.createElement('span');dh.className='dh';dh.textContent='\u28bf';var num=document.createElement('span');num.className='en';num.textContent=list.children.length+1;var inp=document.createElement('input');inp.type='text';inp.value=val||'';inp.placeholder='\u0627\u0633\u0645 \u0627\u0644\u0645\u0627\u062f\u0629...';var del=document.createElement('button');del.textContent='\u062d\u0630\u0641';del.style.cssText='background:var(--red-bg);border:1px solid #d96060;color:var(--red-text);border-radius:4px;cursor:pointer;padding:4px 8px;font-size:11px;font-family:inherit;appearance:none';del.onclick=function(){row.remove();renumCr();};row.appendChild(dh);row.appendChild(num);row.appendChild(inp);row.appendChild(del);list.appendChild(row);row.addEventListener('dragstart',function(e){dragSrc=row;row.classList.add('dragging');e.dataTransfer.effectAllowed='move';});row.addEventListener('dragend',function(){row.classList.remove('dragging');document.querySelectorAll('.cr').forEach(function(r){r.classList.remove('drag-over');});});row.addEventListener('dragover',function(e){e.preventDefault();if(dragSrc&&dragSrc!==row)row.classList.add('drag-over');});row.addEventListener('dragleave',function(){row.classList.remove('drag-over');});row.addEventListener('drop',function(e){e.preventDefault();row.classList.remove('drag-over');if(dragSrc&&dragSrc!==row){var rows=Array.from(list.children);if(rows.indexOf(dragSrc)<rows.indexOf(row))list.insertBefore(dragSrc,row.nextSibling);else list.insertBefore(dragSrc,row);renumCr();}});}
 function addCourseRow(){addCrRow('');var ins=document.querySelectorAll('#courses-list input');if(ins.length)ins[ins.length-1].focus();}
 function renumCr(){document.querySelectorAll('#courses-list .cr').forEach(function(r,i){var n=r.querySelector('.en');if(n)n.textContent=i+1;});}
-function saveCourses(){var inputs=document.querySelectorAll('#courses-list input');var newC=[];inputs.forEach(function(i){var v=i.value.trim();if(v)newC.push(v);});if(!newC.length){toast('\u26a0\ufe0f \u0623\u0636\u0641 \u0645\u0627\u062f\u0629 \u0648\u0627\u062d\u062f\u0629');return;}saveConfig('courses',newC);closeOv('ov-courses');toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0645\u0648\u0627\u062f \u0644\u0644\u062c\u0645\u064a\u0639');}
+function saveCourses(){var inputs=document.querySelectorAll('#courses-list input');var newC=[];inputs.forEach(function(i){var v=i.value.trim();if(v)newC.push(v);});if(!newC.length){toast('\u26a0\ufe0f \u0623\u0636\u0641 \u0645\u0627\u062f\u0629');return;}saveConfig('courses',newC);closeOv('ov-courses');toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0645\u0648\u0627\u062f \u0644\u0644\u062c\u0645\u064a\u0639');}
 
-// ── History ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════════════
 var renameTarget=null;
 function loadHistory(){
   document.getElementById('vid-list').innerHTML='<div class="empty">\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u062d\u0645\u064a\u0644...</div>';
   document.getElementById('att-log').innerHTML='<div class="empty">\u062c\u0627\u0631\u064d \u0627\u0644\u062a\u062d\u0645\u064a\u0644...</div>';
-  db.collection('recordings').orderBy('createdAt','desc').get().then(function(snap){document.getElementById('h-vids').textContent=snap.size;var vl=document.getElementById('vid-list');if(snap.empty){vl.innerHTML='<div class="empty">\u0644\u0627 \u062a\u0648\u062c\u062f \u062a\u0633\u062c\u064a\u0644\u0627\u062a.</div>';return;}vl.innerHTML='';snap.forEach(function(doc){var r=doc.data(),id=doc.id,item=document.createElement('div');item.className='vid-item';item.id='vid-'+id;item.innerHTML='<div class="vid-thumb" onclick="playVid(\''+esc(r.videoUrl)+'\',\''+esc(r.title)+'\',\''+esc(r.course+' · '+r.date+' · '+r.duration)+'\')" title="\u062a\u0634\u063a\u064a\u0644"><svg width="14" height="14" viewBox="0 0 14 14"><polygon points="2,1 13,7 2,13" fill="#1a5fa8"/></svg></div><div class="vid-info"><div class="vid-title">'+esc(r.title)+'</div><div class="vid-meta">'+esc(r.course)+' · '+r.date+' '+r.time+' · '+r.duration+' · '+r.size+' KB</div>'+(r.notes?'<div class="vid-meta" style="font-style:italic">'+esc(r.notes)+'</div>':'')+'</div><div class="vid-acts"><span class="badge bb" style="direction:ltr">'+r.duration+'</span><div style="display:flex;gap:4px"><button class="btn btn-sm" onclick="openRename(\''+id+'\',\''+esc(r.title)+'\')" style="font-size:11px">\u270f\ufe0f</button><a href="'+r.videoUrl+'" target="_blank" class="btn btn-green btn-sm" style="font-size:11px">\u2b07\ufe0f</a><button class="btn btn-danger btn-sm" onclick="delRec(\''+id+'\',\''+esc(r.storagePath)+'\')" style="font-size:11px">\u{1F5D1}</button></div></div>';vl.appendChild(item);});}).catch(function(e){document.getElementById('vid-list').innerHTML='<div class="empty">\u062e\u0637\u0623: '+e.message+'</div>';});
-  db.collection('attendance').orderBy('createdAt','desc').get().then(function(snap){document.getElementById('h-att').textContent=snap.size;var al=document.getElementById('att-log');if(snap.empty){al.innerHTML='<div class="empty">\u0644\u0627 \u062a\u0648\u062c\u062f \u0633\u062c\u0644\u0627\u062a.</div>';document.getElementById('h-avg').textContent='\u2014';return;}al.innerHTML='';var tot=0;snap.forEach(function(doc){var a=doc.data(),id=doc.id;tot+=a.rate;var bc=a.rate>=80?'bg':a.rate>=60?'ba':'br';var row=document.createElement('div');row.className='hist-row';row.innerHTML='<span class="badge '+bc+'" style="flex-shrink:0">'+a.rate+'%</span><div class="hist-info"><div style="font-size:13px;font-weight:600">'+esc(a.title)+' <span style="font-weight:400;font-size:11px;color:var(--text2)">\u2014 '+esc(a.course)+'</span></div><div style="font-size:11px;color:var(--text2);margin-top:2px">'+a.date+' · \u062d\u0627\u0636\u0631: '+a.present+' · \u0645\u062a\u0623\u062e\u0631: '+a.late+' · \u063a\u0627\u0626\u0628: '+a.absent+' \u0645\u0646 '+a.total+'</div><div class="prog-bar" style="width:160px"><div class="prog-fill" style="width:'+a.rate+'%"></div></div></div><button class="btn btn-danger btn-sm" onclick="delAtt(\''+id+'\')" style="font-size:11px">\u{1F5D1}</button>';al.appendChild(row);});document.getElementById('h-avg').textContent=Math.round(tot/snap.size)+'%';}).catch(function(e){document.getElementById('att-log').innerHTML='<div class="empty">\u062e\u0637\u0623: '+e.message+'</div>';});
+  db.collection('recordings').orderBy('createdAt','desc').get().then(function(snap){
+    document.getElementById('h-vids').textContent=snap.size;
+    var vl=document.getElementById('vid-list');
+    if(snap.empty){vl.innerHTML='<div class="empty">\u0644\u0627 \u062a\u0648\u062c\u062f \u062a\u0633\u062c\u064a\u0644\u0627\u062a.</div>';return;}
+    vl.innerHTML='';
+    snap.forEach(function(doc){var r=doc.data(),id=doc.id,item=document.createElement('div');item.className='vid-item';item.id='vid-'+id;item.innerHTML='<div class="vid-thumb" onclick="playVid(\''+esc(r.videoUrl)+'\',\''+esc(r.title)+'\',\''+esc(r.course+' · '+r.date+' · '+r.duration)+'\')" title="\u062a\u0634\u063a\u064a\u0644"><svg width="14" height="14" viewBox="0 0 14 14"><polygon points="2,1 13,7 2,13" fill="#1a5fa8"/></svg></div><div class="vid-info"><div class="vid-title">'+esc(r.title)+'</div><div class="vid-meta">'+esc(r.course)+' · '+r.date+' '+r.time+' · '+r.duration+' · '+r.size+' KB</div>'+(r.notes?'<div class="vid-meta" style="font-style:italic">'+esc(r.notes)+'</div>':'')+'</div><div class="vid-acts"><span class="badge bb" style="direction:ltr">'+r.duration+'</span><div style="display:flex;gap:4px"><button class="btn btn-sm" onclick="openRename(\''+id+'\',\''+esc(r.title)+'\')" style="font-size:11px">\u270f\ufe0f</button><a href="'+r.videoUrl+'" target="_blank" class="btn btn-green btn-sm" style="font-size:11px">\u2b07\ufe0f</a><button class="btn btn-danger btn-sm" onclick="delRec(\''+id+'\',\''+esc(r.storagePath)+'\')" style="font-size:11px">\u{1F5D1}</button></div></div>';vl.appendChild(item);});
+  }).catch(function(e){document.getElementById('vid-list').innerHTML='<div class="empty">\u062e\u0637\u0623: '+e.message+'</div>';});
+  db.collection('attendance').orderBy('createdAt','desc').get().then(function(snap){
+    document.getElementById('h-att').textContent=snap.size;var al=document.getElementById('att-log');
+    if(snap.empty){al.innerHTML='<div class="empty">\u0644\u0627 \u062a\u0648\u062c\u062f \u0633\u062c\u0644\u0627\u062a.</div>';document.getElementById('h-avg').textContent='\u2014';return;}
+    al.innerHTML='';var tot=0;
+    snap.forEach(function(doc){var a=doc.data(),id=doc.id;tot+=a.rate;var bc=a.rate>=80?'bg':a.rate>=60?'ba':'br';var row=document.createElement('div');row.className='hist-row';row.innerHTML='<span class="badge '+bc+'" style="flex-shrink:0">'+a.rate+'%</span><div class="hist-info"><div style="font-size:13px;font-weight:600">'+esc(a.title)+' <span style="font-weight:400;font-size:11px;color:var(--text2)">\u2014 '+esc(a.course)+'</span></div><div style="font-size:11px;color:var(--text2);margin-top:2px">'+a.date+' · \u062d\u0627\u0636\u0631: '+a.present+' · \u0645\u062a\u0623\u062e\u0631: '+a.late+' · \u063a\u0627\u0626\u0628: '+a.absent+' \u0645\u0646 '+a.total+'</div><div class="prog-bar" style="width:160px"><div class="prog-fill" style="width:'+a.rate+'%"></div></div></div><button class="btn btn-danger btn-sm" onclick="delAtt(\''+id+'\')" style="font-size:11px">\u{1F5D1}</button>';al.appendChild(row);});
+    document.getElementById('h-avg').textContent=Math.round(tot/snap.size)+'%';
+  }).catch(function(e){document.getElementById('att-log').innerHTML='<div class="empty">\u062e\u0637\u0623: '+e.message+'</div>';});
 }
-function delRec(id,sp){if(!confirm('\u062d\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644\u061f'))return;var el=document.getElementById('vid-'+id);if(el){el.style.opacity='.4';el.style.pointerEvents='none';}var del=function(){return db.collection('recordings').doc(id).delete();};var done=function(){if(el)el.remove();loadHistory();toast('\u2705 \u062a\u0645 \u0627\u0644\u062d\u0630\u0641');};if(sp)storage.ref(sp).delete().then(del).catch(del).then(done).catch(function(e){toast('\u26a0\ufe0f '+e.message);if(el){el.style.opacity='1';el.style.pointerEvents='';}});else del().then(done).catch(function(e){toast('\u26a0\ufe0f '+e.message);});}
+function delRec(id,sp){if(!confirm('\u062d\u0630\u0641\u061f'))return;var el=document.getElementById('vid-'+id);if(el){el.style.opacity='.4';el.style.pointerEvents='none';}var del=function(){return db.collection('recordings').doc(id).delete();};var done=function(){if(el)el.remove();loadHistory();toast('\u2705 \u062a\u0645 \u0627\u0644\u062d\u0630\u0641');};if(sp)storage.ref(sp).delete().then(del).catch(del).then(done).catch(function(e){toast('\u26a0\ufe0f '+e.message);if(el){el.style.opacity='1';el.style.pointerEvents='';}});else del().then(done).catch(function(e){toast('\u26a0\ufe0f '+e.message);});}
 function delAtt(id){if(!confirm('\u062d\u0630\u0641\u061f'))return;db.collection('attendance').doc(id).delete().then(function(){loadHistory();toast('\u2705 \u062a\u0645 \u0627\u0644\u062d\u0630\u0641');});}
 function openRename(id,title){renameTarget=id;var i=document.getElementById('rename-inp');i.value=title;openOv('ov-rename');setTimeout(function(){i.focus();i.select();},80);}
 function confirmRename(){if(!renameTarget)return;var v=document.getElementById('rename-inp').value.trim();if(!v){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0627\u064b');return;}db.collection('recordings').doc(renameTarget).update({title:v}).then(function(){closeOv('ov-rename');renameTarget=null;loadHistory();toast('\u2705 \u062a\u0645 \u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0627\u0633\u0645');});}
 function playVid(url,title,meta){document.getElementById('vid-mt').textContent=title;document.getElementById('vid-mm').textContent=meta;var v=document.getElementById('pb-video');v.src=url;openOv('ov-vid');v.play().catch(function(){});}
 function closeVid(){var v=document.getElementById('pb-video');v.pause();v.src='';closeOv('ov-vid');}
 
-// ── Tabs ──────────────────────────────────────────
-function switchTab(name,el){document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});el.classList.add('active');document.getElementById('panel-'+name).classList.add('active');if(name==='history')loadHistory();}
+// ═══════════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════════
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');document.getElementById('panel-'+name).classList.add('active');
+  if(name==='history')loadHistory();
+}
 
-// ── Init ──────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
 var _now=new Date();
 document.getElementById('h-date').textContent=_now.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 document.getElementById('att-date').textContent='\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0637\u0644\u0627\u0628 \u2014 '+_now.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
-
 renderCourseSelect(DEFAULT_COURSES);
 renderCourseAttTabs(DEFAULT_COURSES);
 renderStudents();
-loadDailyKey();
 listenConfig();
 loadHistory();
 </script>
