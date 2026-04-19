@@ -419,60 +419,399 @@ function updateTogBtn(n,on){var b=document.getElementById('btn-tog-'+n);if(on){b
 function swapCams(){var t=document.getElementById('vid-1').srcObject;document.getElementById('vid-1').srcObject=document.getElementById('vid-2').srcObject;document.getElementById('vid-2').srcObject=t;var ts=streams[0];streams[0]=streams[1];streams[1]=ts;var te=camEnabled[0];camEnabled[0]=camEnabled[1];camEnabled[1]=te;toast('\u062a\u0645 \u062a\u0628\u062f\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u064a\u0646');}
 function closeCameras(){[0,1].forEach(function(i){if(streams[i]){streams[i].getTracks().forEach(function(t){t.stop();});streams[i]=null;}camEnabled[i]=false;});[1,2].forEach(function(n){document.getElementById('vid-'+n).style.display='none';document.getElementById('cam-ph-'+n).style.display='flex';document.getElementById('off-'+n).className='cam-off-cover';});document.getElementById('cam-sel-wrap').style.display='none';document.getElementById('btn-open-cams').style.display='';document.getElementById('btn-close-cams').style.display='none';document.getElementById('btn-rec').disabled=true;document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u063a\u064a\u0631 \u0645\u0641\u0639\u0651\u0644\u0629';if(localStream&&localStream!==streams[0]&&localStream!==streams[1]){localStream.getTracks().forEach(function(t){t.stop();});}toast('\u062a\u0645 \u0625\u063a\u0644\u0627\u0642 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627\u062a');}
 
-// WEBRTC LIVE
-var localStream=null,peerConnections={},myPeerId=null,isInstructor=false,inLive=false;
-var micMuted=false,vidOff=false,offerUnsub=null,answerUnsub=null,iceUnsub=null;
-var ROOM_ID='luxor-live-room-v1';
-var ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]};
-function genId(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36);}
+// ═══════════════════════════════════════════════════
+// WEBRTC LIVE  —  Full rewrite
+// ICE: STUN (Google) + TURN (metered.ca free tier)
+// Signaling: Firebase Firestore  (no external server)
+// Flow:
+//   1. getUserMedia → localStream
+//   2. Register in Firestore peers/<myPeerId>
+//   3. For each existing peer: send offer (lower ID sends)
+//   4. Listen for: new peers, offers, answers, ICE candidates
+//   5. ontrack → add tile to grid
+//   6. peer removed → close PC + remove tile
+// ═══════════════════════════════════════════════════
+var localStream = null;
+var peerConnections = {};   // peerId → { pc, name, camOn, micOn }
+var myPeerId = null;
+var myName = '';
+var isInstructor = false;
+var inLive = false;
+var micMuted = false;
+var vidOff = false;
+var liveUnsubs = [];        // all Firestore unsubscribers
+var ROOM_ID = 'luxor-live-room-v1';
 
-async function startLive(){var name=document.getElementById('user-name').value.trim()||'\u0627\u0644\u0645\u062f\u0631\u0633';isInstructor=true;localStream=streams[0]||streams[1];if(!localStream){toast('\u0634\u063a\u0651\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627\u062a \u0623\u0648\u0644\u0627\u064b');return;}await _joinRoom(name);}
-async function joinLive(){var name=document.getElementById('user-name').value.trim();if(!name){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643');return;}isInstructor=false;try{localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});}catch(e){try{localStream=await navigator.mediaDevices.getUserMedia({video:false,audio:true});}catch(e2){toast('\u0644\u0627 \u064a\u0645\u0643\u0646 \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0623\u0648 \u0627\u0644\u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646');return;}}await _joinRoom(name);}
+// ICE config — STUN + free TURN from metered.ca
+// TURN ensures connectivity even behind strict NAT/firewalls
+var ICE_CFG = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    // Free TURN servers from metered.ca — no signup needed for basic use
+    { urls: 'turn:a.relay.metered.ca:80',    username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:a.relay.metered.ca:443',   username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turns:a.relay.metered.ca:443',  username: 'openrelayproject', credential: 'openrelayproject' }
+  ],
+  iceCandidatePoolSize: 10
+};
 
-async function _joinRoom(name){
-  myPeerId=genId();inLive=true;
-  var prev=document.getElementById('local-preview');prev.srcObject=localStream;
-  document.getElementById('local-name-label').textContent=name;
-  document.getElementById('live-lobby').style.display='none';
-  document.getElementById('live-session').style.display='block';
-  document.getElementById('live-session-title').textContent=document.getElementById('ses-title').value.trim()||'\u062c\u0644\u0633\u0629 \u0645\u0628\u0627\u0634\u0631\u0629';
-  var roomRef=db.collection('liveRooms').doc(ROOM_ID);
-  await roomRef.set({active:true,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-  await roomRef.collection('peers').doc(myPeerId).set({name:name,role:isInstructor?'instructor':'student',joinedAt:firebase.firestore.FieldValue.serverTimestamp()});
-  var snap=await roomRef.collection('peers').get();
-  var existing=[];snap.forEach(function(d){if(d.id!==myPeerId)existing.push({id:d.id,data:d.data()});});
-  for(var i=0;i<existing.length;i++)await _createOffer(existing[i].id,existing[i].data.name,roomRef);
-  offerUnsub=roomRef.collection('peers').onSnapshot(function(s){
-    s.docChanges().forEach(async function(ch){if(ch.type==='added'&&ch.doc.id!==myPeerId&&!peerConnections[ch.doc.id]&&myPeerId<ch.doc.id)await _createOffer(ch.doc.id,ch.doc.data().name,roomRef);if(ch.type==='removed')_removePeer(ch.doc.id);});
-    document.getElementById('viewer-count').textContent='\u{1F465} '+s.size+' \u0645\u0634\u0627\u0631\u0643'+(s.size===1?'':'\u064a\u0646');
+function genId() {
+  return Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+}
+
+// ── Entry points ────────────────────────────────────
+
+async function startLive() {
+  var name = document.getElementById('user-name').value.trim() || '\u0627\u0644\u0645\u062f\u0631\u0633';
+  // Instructor uses cam1 stream (already open); no extra getUserMedia needed
+  localStream = streams[0] || streams[1];
+  if (!localStream) {
+    // Instructor hasn't opened cameras yet — try to get one now
+    try { localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); }
+    catch(e) { toast('\u26a0\ufe0f \u064a\u0631\u062c\u0649 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627\u062a \u0623\u0648 \u0627\u0644\u0633\u0645\u0627\u062d \u0628\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627'); return; }
+  }
+  isInstructor = true;
+  await _enterRoom(name);
+}
+
+async function joinLive() {
+  var name = document.getElementById('user-name').value.trim();
+  if (!name) { toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0623\u0648\u0644\u0627\u064b'); return; }
+  isInstructor = false;
+
+  // REQ 1 + REQ 5: request camera/mic, fall back gracefully
+  var camGranted = false;
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    camGranted = true;
+  } catch (e1) {
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+      _showPermMsg('\u2139\ufe0f \u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0633\u0645\u0627\u062d \u0628\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u2014 \u0633\u062a\u0646\u0636\u0645 \u0628\u0627\u0644\u0635\u0648\u062a \u0641\u0642\u0637', 'amber');
+    } catch (e2) {
+      // Viewer-only: create silent stream
+      try {
+        var ac = new (window.AudioContext || window.webkitAudioContext)();
+        var dest = ac.createMediaStreamDestination();
+        localStream = dest.stream;
+        _showPermMsg('\u26a0\ufe0f \u0644\u0627 \u064a\u0648\u062c\u062f \u0635\u0648\u062a \u0623\u0648 \u0635\u0648\u0631\u0629 \u2014 \u0633\u062a\u0646\u0636\u0645 \u0643\u0645\u0634\u0627\u0647\u062f \u0641\u0642\u0637', 'red');
+      } catch(e3) { toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u0627\u0646\u0636\u0645\u0627\u0645'); return; }
+    }
+  }
+  await _enterRoom(name);
+}
+
+function _showPermMsg(msg, type) {
+  var el = document.getElementById('perm-msg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'perm-msg';
+    el.style.cssText = 'margin-top:8px;padding:8px 14px;border-radius:6px;font-size:12px;text-align:right';
+    document.getElementById('live-lobby').appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.background = type === 'amber' ? 'var(--amber-bg)' : 'var(--red-bg)';
+  el.style.color = type === 'amber' ? 'var(--amber-text)' : 'var(--red-text)';
+  el.style.display = 'block';
+}
+
+// ── Core join logic ──────────────────────────────────
+
+async function _enterRoom(name) {
+  myPeerId = genId();
+  myName = name;
+  inLive = true;
+
+  // REQ 2: local preview (muted to avoid echo)
+  var prev = document.getElementById('local-preview');
+  prev.srcObject = localStream;
+  prev.muted = true;
+  document.getElementById('local-name-label').textContent = name + ' (\u0623\u0646\u062a)';
+
+  // Show session UI
+  document.getElementById('live-lobby').style.display = 'none';
+  document.getElementById('live-session').style.display = 'block';
+  document.getElementById('live-session-title').textContent =
+    document.getElementById('ses-title').value.trim() || '\u062c\u0644\u0633\u0629 \u0645\u0628\u0627\u0634\u0631\u0629';
+
+  // Update toggle button states
+  _syncLocalToggles();
+
+  var roomRef = db.collection('liveRooms').doc(ROOM_ID);
+  await roomRef.set({ active: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  await roomRef.collection('peers').doc(myPeerId).set({
+    name: name,
+    role: isInstructor ? 'instructor' : 'student',
+    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-  roomRef.collection('signals').where('to','==',myPeerId).where('type','==','offer').onSnapshot(function(s){s.docChanges().forEach(async function(ch){if(ch.type==='added'){var sig=ch.doc.data();await _handleOffer(sig.from,sig.fromName,sig.sdp,roomRef);ch.doc.ref.delete();}});});
-  roomRef.collection('signals').where('to','==',myPeerId).where('type','==','answer').onSnapshot(function(s){s.docChanges().forEach(async function(ch){if(ch.type==='added'){var sig=ch.doc.data();var pc=peerConnections[sig.from];if(pc&&pc.signalingState==='have-local-offer')await pc.setRemoteDescription({type:'answer',sdp:sig.sdp});ch.doc.ref.delete();}});});
-  roomRef.collection('signals').where('to','==',myPeerId).where('type','==','ice').onSnapshot(function(s){s.docChanges().forEach(function(ch){if(ch.type==='added'){var sig=ch.doc.data();var pc=peerConnections[sig.from];if(pc)pc.addIceCandidate(new RTCIceCandidate(sig.candidate)).catch(function(){});ch.doc.ref.delete();}});});
+
+  // REQ 3: connect to all existing peers
+  var snap = await roomRef.collection('peers').get();
+  var existing = [];
+  snap.forEach(function(d) { if (d.id !== myPeerId) existing.push({ id: d.id, data: d.data() }); });
+  for (var i = 0; i < existing.length; i++) {
+    await _sendOffer(existing[i].id, existing[i].data.name, roomRef);
+  }
+
+  // REQ 4: watch for peers joining/leaving
+  var u1 = roomRef.collection('peers').onSnapshot(function(s) {
+    s.docChanges().forEach(async function(ch) {
+      if (ch.type === 'added' && ch.doc.id !== myPeerId && !peerConnections[ch.doc.id]) {
+        // Only the peer with the lower ID sends the offer (prevents duplicates)
+        if (myPeerId < ch.doc.id) {
+          await _sendOffer(ch.doc.id, ch.doc.data().name, roomRef);
+        }
+      }
+      if (ch.type === 'removed') _removePeer(ch.doc.id);
+    });
+    // Update participant count
+    document.getElementById('viewer-count').textContent =
+      '\u{1F465} ' + s.size + ' \u0645\u0634\u0627\u0631\u0643' + (s.size === 1 ? '' : '\u064a\u0646');
+  });
+
+  // Listen for offers directed at me
+  var u2 = roomRef.collection('signals')
+    .where('to', '==', myPeerId).where('type', '==', 'offer')
+    .onSnapshot(function(s) {
+      s.docChanges().forEach(async function(ch) {
+        if (ch.type === 'added') {
+          var d = ch.doc.data();
+          if (!peerConnections[d.from]) await _handleOffer(d.from, d.fromName, d.sdp, roomRef);
+          ch.doc.ref.delete();
+        }
+      });
+    });
+
+  // Listen for answers directed at me
+  var u3 = roomRef.collection('signals')
+    .where('to', '==', myPeerId).where('type', '==', 'answer')
+    .onSnapshot(function(s) {
+      s.docChanges().forEach(async function(ch) {
+        if (ch.type === 'added') {
+          var d = ch.doc.data();
+          var entry = peerConnections[d.from];
+          if (entry && entry.pc.signalingState === 'have-local-offer') {
+            await entry.pc.setRemoteDescription({ type: 'answer', sdp: d.sdp });
+          }
+          ch.doc.ref.delete();
+        }
+      });
+    });
+
+  // Listen for ICE candidates directed at me
+  var u4 = roomRef.collection('signals')
+    .where('to', '==', myPeerId).where('type', '==', 'ice')
+    .onSnapshot(function(s) {
+      s.docChanges().forEach(function(ch) {
+        if (ch.type === 'added') {
+          var d = ch.doc.data();
+          var entry = peerConnections[d.from];
+          if (entry) entry.pc.addIceCandidate(new RTCIceCandidate(d.candidate)).catch(function() {});
+          ch.doc.ref.delete();
+        }
+      });
+    });
+
+  liveUnsubs = [u1, u2, u3, u4];
   toast('\u2705 \u062f\u062e\u0644\u062a \u0627\u0644\u0628\u062b \u0628\u0646\u062c\u0627\u062d');
 }
 
-async function _createOffer(pid,pname,rref){var pc=_makePC(pid,pname,rref);localStream.getTracks().forEach(function(t){pc.addTrack(t,localStream);});var offer=await pc.createOffer();await pc.setLocalDescription(offer);await rref.collection('signals').add({type:'offer',from:myPeerId,fromName:document.getElementById('user-name').value.trim()||'\u0645\u0634\u0627\u0631\u0643',to:pid,sdp:offer.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});}
-async function _handleOffer(pid,pname,sdp,rref){var pc=_makePC(pid,pname,rref);localStream.getTracks().forEach(function(t){pc.addTrack(t,localStream);});await pc.setRemoteDescription({type:'offer',sdp:sdp});var answer=await pc.createAnswer();await pc.setLocalDescription(answer);await rref.collection('signals').add({type:'answer',from:myPeerId,to:pid,sdp:answer.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});}
-function _makePC(pid,pname,rref){
-  var pc=new RTCPeerConnection(ICE);peerConnections[pid]=pc;
-  pc.onicecandidate=function(e){if(e.candidate)rref.collection('signals').add({type:'ice',from:myPeerId,to:pid,candidate:e.candidate.toJSON(),ts:firebase.firestore.FieldValue.serverTimestamp()});};
-  pc.ontrack=function(e){_addRemoteVid(pid,pname,e.streams[0]);};
-  pc.onconnectionstatechange=function(){if(pc.connectionState==='failed'||pc.connectionState==='disconnected')_removePeer(pid);};
+// ── WebRTC helpers ───────────────────────────────────
+
+function _makePC(pid, pname, roomRef) {
+  var pc = new RTCPeerConnection(ICE_CFG);
+
+  // Add all local tracks so the remote peer receives our stream
+  if (localStream) {
+    localStream.getTracks().forEach(function(t) { pc.addTrack(t, localStream); });
+  }
+
+  // Send ICE candidates to the remote peer via Firestore
+  pc.onicecandidate = function(e) {
+    if (e.candidate) {
+      roomRef.collection('signals').add({
+        type: 'ice', from: myPeerId, to: pid,
+        candidate: e.candidate.toJSON(),
+        ts: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+  };
+
+  // REQ 4: when we receive a track from the remote peer, show their tile
+  pc.ontrack = function(e) {
+    if (e.streams && e.streams[0]) _upsertRemoteTile(pid, pname, e.streams[0]);
+  };
+
+  // Handle disconnection / failure
+  pc.onconnectionstatechange = function() {
+    if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+      // Try to recover once; if still failing, remove
+      setTimeout(function() {
+        if (pc.connectionState === 'failed') _removePeer(pid);
+      }, 3000);
+    }
+    if (pc.connectionState === 'closed') _removePeer(pid);
+  };
+
+  peerConnections[pid] = { pc: pc, name: pname };
   return pc;
 }
-function _addRemoteVid(pid,pname,stream){
-  var ex=document.getElementById('rv-'+pid);if(ex){ex.srcObject=stream;return;}
-  document.getElementById('waiting-msg').style.display='none';
-  var wrap=document.createElement('div');wrap.className='remote-video-wrap';wrap.id='rv-wrap-'+pid;
-  var v=document.createElement('video');v.id='rv-'+pid;v.autoplay=true;v.playsinline=true;v.srcObject=stream;
-  var lbl=document.createElement('div');lbl.className='remote-name';lbl.textContent=pname||'\u0645\u0634\u0627\u0631\u0643';
-  wrap.appendChild(v);wrap.appendChild(lbl);document.getElementById('remote-videos').appendChild(wrap);
+
+async function _sendOffer(pid, pname, roomRef) {
+  var pc = _makePC(pid, pname, roomRef);
+  var offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+  await pc.setLocalDescription(offer);
+  await roomRef.collection('signals').add({
+    type: 'offer', from: myPeerId, fromName: myName, to: pid,
+    sdp: offer.sdp, ts: firebase.firestore.FieldValue.serverTimestamp()
+  });
 }
-function _removePeer(pid){var pc=peerConnections[pid];if(pc){pc.close();delete peerConnections[pid];}var w=document.getElementById('rv-wrap-'+pid);if(w)w.remove();if(!document.getElementById('remote-videos').querySelector('.remote-video-wrap'))document.getElementById('waiting-msg').style.display='flex';}
-async function leaveLive(){inLive=false;Object.keys(peerConnections).forEach(function(id){try{peerConnections[id].close();}catch(e){}});peerConnections={};try{await db.collection('liveRooms').doc(ROOM_ID).collection('peers').doc(myPeerId).delete();}catch(e){}if(offerUnsub)offerUnsub();if(answerUnsub)answerUnsub();if(iceUnsub)iceUnsub();if(localStream&&localStream!==streams[0]&&localStream!==streams[1])localStream.getTracks().forEach(function(t){t.stop();});localStream=null;myPeerId=null;document.getElementById('remote-videos').innerHTML='<div class="waiting-msg" id="waiting-msg"><span style="color:#555">\u0641\u064a \u0627\u0646\u062a\u0638\u0627\u0631 \u0627\u0644\u0645\u0634\u0627\u0631\u0643\u064a\u0646...</span></div>';document.getElementById('live-session').style.display='none';document.getElementById('live-lobby').style.display='block';document.getElementById('local-preview').srcObject=null;toast('\u063a\u0627\u062f\u0631\u062a \u0627\u0644\u0628\u062b');}
-function toggleMic(){if(!localStream)return;var at=localStream.getAudioTracks()[0];if(!at)return;micMuted=!micMuted;at.enabled=!micMuted;document.getElementById('btn-mute').textContent=micMuted?'\u{1F507} \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0645\u064a\u0643':'\u{1F399}\ufe0f \u0643\u062a\u0645 \u0627\u0644\u0645\u064a\u0643';}
-function toggleLocalVid(){if(!localStream)return;var vt=localStream.getVideoTracks()[0];if(!vt)return;vidOff=!vidOff;vt.enabled=!vidOff;document.getElementById('btn-vid-off').textContent=vidOff?'\u{1F4F7} \u062a\u0634\u063a\u064a\u0644 \u0643\u0627\u0645':'\u{1F4F7} \u0625\u064a\u0642\u0627\u0641 \u0643\u0627\u0645';}
+
+async function _handleOffer(pid, pname, sdp, roomRef) {
+  var pc = _makePC(pid, pname, roomRef);
+  await pc.setRemoteDescription({ type: 'offer', sdp: sdp });
+  var answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  await roomRef.collection('signals').add({
+    type: 'answer', from: myPeerId, to: pid,
+    sdp: answer.sdp, ts: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+// REQ 4 + REQ 6: add or update a remote participant tile
+function _upsertRemoteTile(pid, pname, stream) {
+  var existing = document.getElementById('rv-' + pid);
+  if (existing) { existing.srcObject = stream; return; }
+
+  document.getElementById('waiting-msg').style.display = 'none';
+
+  var wrap = document.createElement('div');
+  wrap.className = 'remote-video-wrap';
+  wrap.id = 'rv-wrap-' + pid;
+
+  var v = document.createElement('video');
+  v.id = 'rv-' + pid;
+  v.autoplay = true;
+  v.playsinline = true;
+  v.srcObject = stream;
+  v.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+
+  // Name label
+  var lbl = document.createElement('div');
+  lbl.className = 'remote-name';
+  lbl.textContent = pname || '\u0645\u0634\u0627\u0631\u0643';
+
+  // Cam-off overlay (for when participant mutes their video)
+  var overlay = document.createElement('div');
+  overlay.id = 'rv-off-' + pid;
+  overlay.style.cssText = 'display:none;position:absolute;inset:0;background:#111;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#555;font-size:12px';
+  overlay.innerHTML = '<span style="font-size:28px">\uD83D\uDCF7</span><span>\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629</span>';
+
+  wrap.appendChild(v);
+  wrap.appendChild(lbl);
+  wrap.appendChild(overlay);
+  document.getElementById('remote-videos').appendChild(wrap);
+  _refreshGrid();
+}
+
+// REQ 4: remove tile cleanly
+function _removePeer(pid) {
+  var entry = peerConnections[pid];
+  if (entry) { try { entry.pc.close(); } catch(e) {} delete peerConnections[pid]; }
+  var wrap = document.getElementById('rv-wrap-' + pid);
+  if (wrap) wrap.remove();
+  _refreshGrid();
+}
+
+// REQ 4: responsive grid — auto-fit columns based on participant count
+function _refreshGrid() {
+  var grid = document.getElementById('remote-videos');
+  var n = grid.querySelectorAll('.remote-video-wrap').length;
+  if (n === 0) {
+    document.getElementById('waiting-msg').style.display = 'flex';
+    grid.style.gridTemplateColumns = '1fr';
+  } else if (n === 1) {
+    grid.style.gridTemplateColumns = '1fr';
+  } else if (n <= 4) {
+    grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+  } else if (n <= 9) {
+    grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  } else {
+    grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+  }
+}
+
+// ── Leave ────────────────────────────────────────────
+
+async function leaveLive() {
+  inLive = false;
+
+  // Close all peer connections
+  Object.keys(peerConnections).forEach(function(id) {
+    try { peerConnections[id].pc.close(); } catch(e) {}
+  });
+  peerConnections = {};
+
+  // Unsubscribe all Firestore listeners
+  liveUnsubs.forEach(function(u) { try { u(); } catch(e) {} });
+  liveUnsubs = [];
+
+  // Remove ourselves from the room
+  try { await db.collection('liveRooms').doc(ROOM_ID).collection('peers').doc(myPeerId).delete(); } catch(e) {}
+
+  // Stop local stream if it belongs only to live (not instructor's cameras)
+  if (localStream && localStream !== streams[0] && localStream !== streams[1]) {
+    localStream.getTracks().forEach(function(t) { t.stop(); });
+  }
+  localStream = null;
+  myPeerId = null;
+  myName = '';
+  micMuted = false;
+  vidOff = false;
+
+  // Reset UI
+  document.getElementById('remote-videos').innerHTML =
+    '<div class="waiting-msg" id="waiting-msg"><span style="color:#555">\u0641\u064a \u0627\u0646\u062a\u0638\u0627\u0631 \u0627\u0644\u0645\u0634\u0627\u0631\u0643\u064a\u0646...</span></div>';
+  document.getElementById('live-session').style.display = 'none';
+  document.getElementById('live-lobby').style.display = 'block';
+  document.getElementById('local-preview').srcObject = null;
+  var pm = document.getElementById('perm-msg');
+  if (pm) pm.style.display = 'none';
+  toast('\u063a\u0627\u062f\u0631\u062a \u0627\u0644\u0628\u062b');
+}
+
+// ── REQ 6: Camera / Mic toggles ─────────────────────
+
+function _syncLocalToggles() {
+  var btnMic = document.getElementById('btn-mute');
+  var btnVid = document.getElementById('btn-vid-off');
+  if (btnMic) btnMic.textContent = micMuted ? '\uD83D\uDD07 \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0645\u064a\u0643' : '\uD83C\uDF99\uFE0F \u0643\u062a\u0645 \u0627\u0644\u0645\u064a\u0643';
+  if (btnVid) btnVid.textContent = vidOff ? '\uD83D\uDCF7 \u062a\u0634\u063a\u064a\u0644 \u0643\u0627\u0645' : '\uD83D\uDCF7 \u0625\u064a\u0642\u0627\u0641 \u0643\u0627\u0645';
+}
+
+function toggleMic() {
+  if (!localStream) return;
+  var at = localStream.getAudioTracks()[0];
+  if (!at) return;
+  micMuted = !micMuted;
+  at.enabled = !micMuted;
+  _syncLocalToggles();
+  toast(micMuted ? '\u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646 \u0645\u0643\u062a\u0648\u0645' : '\u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646 \u0645\u0641\u0639\u0651\u0644');
+}
+
+function toggleLocalVid() {
+  if (!localStream) return;
+  var vt = localStream.getVideoTracks()[0];
+  if (!vt) return;
+  vidOff = !vidOff;
+  vt.enabled = !vidOff;
+  // Dim local preview when camera is off
+  var prev = document.getElementById('local-preview');
+  if (prev) prev.style.opacity = vidOff ? '0.15' : '1';
+  _syncLocalToggles();
+  toast(vidOff ? '\u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u0628\u062b \u0645\u062a\u0648\u0642\u0641\u0629' : '\u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u0628\u062b \u0634\u063a\u0627\u0644\u0629');
+}
 
 // CANVAS COMPOSITOR RECORDING
 // Collects ALL video sources: cam1, cam2, ALL remote participants
