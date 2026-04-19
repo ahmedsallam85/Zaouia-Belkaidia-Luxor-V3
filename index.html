@@ -569,38 +569,49 @@ async function _renegotiate(pid, rRef){
 // ═══════════════════════════════════════════════════════
 // TRAINING ROOM — WebRTC full-mesh
 //
-// DESIGN:
-//  • Everyone sends their OWN camera+mic stream to every other peer
-//  • Instructor ALSO sends cam1+cam2 tracks in addition to roomStream
-//  • Signaling via Firestore (no extra server)
-//  • ICE: STUN + TURN (metered.ca free)
-//  • Polite-peer pattern prevents offer collision
-//  • Mobile: getUserMedia without 'exact' facingMode, setAttribute for playsinline
+// KEY DESIGN DECISIONS (fix for "can't see each other"):
+//
+// 1. DETERMINISTIC OFFER DIRECTION — avoids race condition:
+//    • When A joins and B already exists  → A sends offer to B
+//    • When B joins after A (peer added)  → A sends offer to B
+//    • Rule: the peer with the LARGER ID always sends the offer
+//    • This means exactly ONE offer per pair, no collision
+//
+// 2. ICE CANDIDATE BUFFERING:
+//    • ICE candidates may arrive before setRemoteDescription
+//    • We buffer them and apply after remote desc is set
+//
+// 3. ontrack — use e.track directly, not e.streams:
+//    • e.streams[0] can be empty on some mobile browsers
+//    • We build a MediaStream manually from the track
+//
+// 4. MOBILE PLAYBACK:
+//    • setAttribute (not property assignment) for playsinline
+//    • srcObject set AFTER DOM insertion
+//    • explicit play() with tap-to-play fallback
 // ═══════════════════════════════════════════════════════
-var ROOM='luxor-v3';
-var myId=null,myName='',roomStream=null;
-var peers={}; // pid → {pc, name, rRef}
+var ROOM='luxor-v4';
+var myId=null, myName='', roomStream=null;
+var peers={};    // pid → {pc, name, rRef, iceBuf[], streams{}}
 var unsubs=[];
-var rMic=false,rCam=false,rFacing='user';
+var rMic=false, rCam=false, rFacing='user';
 
 var ICE={
   iceServers:[
     {urls:'stun:stun.l.google.com:19302'},
     {urls:'stun:stun1.l.google.com:19302'},
     {urls:'stun:stun2.l.google.com:19302'},
-    // Free TURN — multiple endpoints for reliability
     {urls:'turn:a.relay.metered.ca:80',   username:'openrelayproject',credential:'openrelayproject'},
     {urls:'turn:a.relay.metered.ca:443',  username:'openrelayproject',credential:'openrelayproject'},
     {urls:'turns:a.relay.metered.ca:443', username:'openrelayproject',credential:'openrelayproject'},
     {urls:'turn:relay.metered.ca:80',     username:'openrelayproject',credential:'openrelayproject'},
     {urls:'turn:relay.metered.ca:443',    username:'openrelayproject',credential:'openrelayproject'}
   ],
-  iceCandidatePoolSize:12
+  iceCandidatePoolSize:10
 };
 
 function _uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 
-// Get media with multiple fallbacks — works on iOS/Android/Desktop
 async function _getMedia(facing){
   var tries=[
     {video:{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}},audio:{echoCancellation:true,noiseSuppression:true}},
@@ -611,234 +622,298 @@ async function _getMedia(facing){
   for(var i=0;i<tries.length;i++){
     try{return await navigator.mediaDevices.getUserMedia(tries[i]);}catch(e){}
   }
-  // Viewer-only fallback: silent stream
   try{var ac=new(window.AudioContext||window.webkitAudioContext)();return ac.createMediaStreamDestination().stream;}catch(e){return null;}
 }
 
 async function joinRoom(){
   var name=document.getElementById('room-name').value.trim();
   if(!name){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643');return;}
-  var btn=document.getElementById('btn-join');btn.disabled=true;
-  btn.innerHTML='<span class="spin"></span> \u062c\u0627\u0631\u064d \u0627\u0644\u0627\u062a\u0635\u0627\u0644...';
+  var btn=document.getElementById('btn-join');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> \u062c\u0627\u0631\u064d...';
 
-  // Get user's own camera+mic
   roomStream=await _getMedia(rFacing);
   if(!roomStream){
     btn.disabled=false;btn.textContent='\u062f\u062e\u0648\u0644 \u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';
     toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u062c\u0647\u0627\u0632');return;
   }
 
-  // Show permission feedback
   var hasVid=roomStream.getVideoTracks().length>0;
   var hasMic=roomStream.getAudioTracks().length>0;
-  if(!hasVid&&!hasMic)_permMsg('\u26a0\ufe0f \u0628\u062f\u0648\u0646 \u0635\u0648\u062a \u0648\u0644\u0627 \u0635\u0648\u0631\u0629 \u2014 \u0645\u0634\u0627\u0647\u062f \u0641\u0642\u0637','red');
-  else if(!hasVid)_permMsg('\u2139\ufe0f \u0628\u062f\u0648\u0646 \u0643\u0627\u0645\u064a\u0631\u0627 \u2014 \u0635\u0648\u062a \u0641\u0642\u0637','amber');
+  if(!hasVid&&!hasMic)_permMsg('\u26a0\ufe0f \u0628\u062f\u0648\u0646 \u0635\u0648\u062a \u0648\u0644\u0627 \u0635\u0648\u0631\u0629','red');
+  else if(!hasVid)_permMsg('\u2139\ufe0f \u0635\u0648\u062a \u0641\u0642\u0637 \u2014 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062d\u062c\u0648\u0628\u0629','amber');
 
-  myId=_uid();myName=name;
+  myId=_uid(); myName=name;
 
-  // Show local preview
+  // Local preview
   var mv=document.getElementById('my-video');
   mv.srcObject=roomStream;
   safePlay(mv);
   document.getElementById('my-name-lbl').textContent=name+' (\u0623\u0646\u062a)';
   if(!hasVid)document.getElementById('my-voff').className='voff on';
 
-  // Switch UI
   document.getElementById('room-lobby').style.display='none';
   document.getElementById('room-active').style.display='block';
-  document.getElementById('room-title-lbl').textContent=document.getElementById('ses-title').value.trim()||'\u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';
+  document.getElementById('room-title-lbl').textContent=
+    document.getElementById('ses-title').value.trim()||'\u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';
   _syncRoomControls();
-  _updateGrid();
 
-  // Show instructor cams in grid if already active
+  // Show instructor cams if already active
   [1,2].forEach(function(n){
-    var idx=n-1;var it=document.getElementById('instr-tile-'+n);var iv=document.getElementById('instr-v'+n);
-    if(streams[idx]&&it&&iv){it.style.display='block';if(iv.srcObject!==streams[idx]){iv.srcObject=streams[idx];safePlay(iv);}}
+    var it=document.getElementById('instr-tile-'+n);
+    var iv=document.getElementById('instr-v'+n);
+    if(streams[n-1]&&it&&iv){
+      it.style.display='block';iv.srcObject=streams[n-1];safePlay(iv);
+    }
   });
   _updateGrid();
 
   var rRef=db.collection('rooms').doc(ROOM);
-  await rRef.set({active:true,ts:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  await rRef.set({active:true},{merge:true});
   await rRef.collection('peers').doc(myId).set({name:name,at:firebase.firestore.FieldValue.serverTimestamp()});
 
-  // Connect to all EXISTING peers first
-  var snap=await rRef.collection('peers').get();
-  var tasks=[];
-  snap.forEach(function(d){if(d.id!==myId)tasks.push(_sendOffer(d.id,d.data().name,rRef));});
-  await Promise.allSettled(tasks);
+  // ── SIGNAL LISTENERS (set up BEFORE reading existing peers) ─────────────
 
-  // Watch for peers joining/leaving AFTER us
-  var u1=rRef.collection('peers').onSnapshot(function(s){
-    s.docChanges().forEach(function(ch){
-      if(ch.type==='added'&&ch.doc.id!==myId&&!peers[ch.doc.id]){
-        _sendOffer(ch.doc.id,ch.doc.data().name,rRef);
-      }
-      if(ch.type==='removed')_drop(ch.doc.id);
-    });
-    document.getElementById('room-count').textContent='\u{1F465} '+s.size;
-  });
-
-  // My offers incoming
+  // Offers sent TO me → I am callee, create answer
   var u2=rRef.collection('sig').where('to','==',myId).where('t','==','offer')
-    .onSnapshot(function(s){
-      s.docChanges().forEach(async function(ch){
+    .onSnapshot(function(snap){
+      snap.docChanges().forEach(async function(ch){
         if(ch.type!=='added')return;
         var d=ch.doc.data();
+        ch.doc.ref.delete().catch(function(){});
+        // Create PC if it doesn't exist yet
+        if(!peers[d.fr]) _makePc(d.fr, d.fn, rRef);
         var entry=peers[d.fr];
-        // Perfect Negotiation: polite peer (smaller ID) rolls back on collision
-        if(entry&&entry.pc.signalingState!=='stable'){
-          if(myId<d.fr){
-            await entry.pc.setLocalDescription({type:'rollback'}).catch(function(){});
-          } else {
-            ch.doc.ref.delete();return; // impolite: discard their offer
-          }
-        }
-        if(!peers[d.fr])_makePc(d.fr,d.fn,rRef);
-        var pc=peers[d.fr].pc;
+        var pc=entry.pc;
         try{
           await pc.setRemoteDescription({type:'offer',sdp:d.sdp});
+          // Flush buffered ICE candidates
+          while(entry.iceBuf.length){
+            var c=entry.iceBuf.shift();
+            await pc.addIceCandidate(new RTCIceCandidate(c)).catch(function(){});
+          }
           var ans=await pc.createAnswer();
           await pc.setLocalDescription(ans);
-          await rRef.collection('sig').add({t:'answer',fr:myId,to:d.fr,sdp:ans.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
-        }catch(e){console.warn('answer err',e);}
-        ch.doc.ref.delete();
+          await rRef.collection('sig').add({
+            t:'answer',fr:myId,to:d.fr,sdp:ans.sdp,
+            ts:firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }catch(e){console.warn('handleOffer err',e);}
       });
     });
 
-  // My answers incoming
+  // Answers sent TO me → I am caller, set remote desc
   var u3=rRef.collection('sig').where('to','==',myId).where('t','==','answer')
-    .onSnapshot(function(s){
-      s.docChanges().forEach(async function(ch){
+    .onSnapshot(function(snap){
+      snap.docChanges().forEach(async function(ch){
         if(ch.type!=='added')return;
-        var d=ch.doc.data();var e=peers[d.fr];
-        if(e&&e.pc.signalingState==='have-local-offer'){
-          await e.pc.setRemoteDescription({type:'answer',sdp:d.sdp}).catch(function(){});
+        var d=ch.doc.data();
+        ch.doc.ref.delete().catch(function(){});
+        var entry=peers[d.fr];
+        if(!entry)return;
+        if(entry.pc.signalingState==='have-local-offer'){
+          try{
+            await entry.pc.setRemoteDescription({type:'answer',sdp:d.sdp});
+            // Flush buffered ICE
+            while(entry.iceBuf.length){
+              var c=entry.iceBuf.shift();
+              await entry.pc.addIceCandidate(new RTCIceCandidate(c)).catch(function(){});
+            }
+          }catch(e){console.warn('handleAnswer err',e);}
         }
-        ch.doc.ref.delete();
       });
     });
 
-  // My ICE candidates
+  // ICE candidates for me
   var u4=rRef.collection('sig').where('to','==',myId).where('t','==','ice')
-    .onSnapshot(function(s){
-      s.docChanges().forEach(function(ch){
+    .onSnapshot(function(snap){
+      snap.docChanges().forEach(async function(ch){
         if(ch.type!=='added')return;
-        var d=ch.doc.data();var e=peers[d.fr];
-        if(e&&d.c){e.pc.addIceCandidate(new RTCIceCandidate(d.c)).catch(function(){});}
-        ch.doc.ref.delete();
+        var d=ch.doc.data();
+        ch.doc.ref.delete().catch(function(){});
+        var entry=peers[d.fr];
+        if(!entry)return;
+        var cand=new RTCIceCandidate(d.c);
+        if(entry.pc.remoteDescription){
+          entry.pc.addIceCandidate(cand).catch(function(){});
+        } else {
+          // Buffer until remote description is set
+          entry.iceBuf.push(d.c);
+        }
       });
     });
+
+  // ── PEER PRESENCE LISTENER ────────────────────────────────────────────────
+  // Rule: peer with LARGER ID sends the offer (deterministic — no collision)
+  var u1=rRef.collection('peers').onSnapshot(function(snap){
+    snap.docChanges().forEach(function(ch){
+      if(ch.type==='added'&&ch.doc.id!==myId){
+        var pid=ch.doc.id;
+        var pname=ch.doc.data().name||'\u0645\u0634\u0627\u0631\u0643';
+        if(!peers[pid]){
+          // Only the LARGER ID sends the offer
+          if(myId>pid){
+            _makePc(pid,pname,rRef);
+            _doOffer(pid,rRef);
+          }
+          // else: wait for them to send us an offer (they have larger ID)
+        }
+      }
+      if(ch.type==='removed') _drop(ch.doc.id);
+    });
+    document.getElementById('room-count').textContent='\u{1F465} '+snap.size;
+  });
 
   unsubs=[u1,u2,u3,u4];
   toast('\u2705 \u062f\u062e\u0644\u062a \u0627\u0644\u063a\u0631\u0641\u0629');
 }
 
-function _makePc(pid,pname,rRef){
+// Create a PeerConnection for a given peer
+function _makePc(pid, pname, rRef){
+  if(peers[pid])return; // guard: don't create twice
   var pc=new RTCPeerConnection(ICE);
-  peers[pid]={pc:pc,name:pname,rRef:rRef};
+  peers[pid]={pc:pc, name:pname, rRef:rRef, iceBuf:[], streams:{}};
 
-  // ★ Add OUR OWN stream (camera+mic)
-  if(roomStream){roomStream.getTracks().forEach(function(t){pc.addTrack(t,roomStream);});}
-
-  // ★ ALSO add instructor cam1 and cam2 tracks (if active)
-  // These let participants see the instructor's cameras
+  // Add our own tracks
+  if(roomStream){
+    roomStream.getTracks().forEach(function(t){
+      pc.addTrack(t, roomStream);
+    });
+  }
+  // Add instructor cams if we have them
   [0,1].forEach(function(idx){
     if(streams[idx]){
       var vt=streams[idx].getVideoTracks()[0];
-      if(vt){try{pc.addTrack(vt,streams[idx]);}catch(e){}}
+      if(vt){try{pc.addTrack(vt, streams[idx]);}catch(e){}}
     }
   });
 
+  // Relay ICE candidates
   pc.onicecandidate=function(e){
     if(e.candidate){
-      rRef.collection('sig').add({t:'ice',fr:myId,to:pid,c:e.candidate.toJSON(),ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
+      rRef.collection('sig').add({
+        t:'ice',fr:myId,to:pid,
+        c:e.candidate.toJSON(),
+        ts:firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(function(){});
     }
   };
 
-  // ★ Each ontrack creates a tile — first stream = participant camera, extra = instructor cams
-  var streamCount=0;
+  // ★ KEY FIX: use e.track to build stream, don't rely on e.streams[0]
+  // Some mobile browsers send e.streams as empty array
+  var remoteStreams={};
   pc.ontrack=function(e){
-    if(!e.streams||!e.streams[0])return;
-    var stream=e.streams[0];
-    streamCount++;
-    if(streamCount===1){
-      // First stream = this participant's own camera
-      _upsertTile(pid,pname,stream);
+    var track=e.track;
+    var stream=null;
+    if(e.streams&&e.streams[0]){
+      stream=e.streams[0];
     } else {
-      // Additional streams = instructor cameras shared by this peer
-      _upsertInstructorTileFromPeer(streamCount-1,stream,pid);
+      // Build a synthetic stream from the track
+      if(!remoteStreams[track.kind]){
+        remoteStreams[track.kind]=new MediaStream();
+      }
+      remoteStreams[track.kind].addTrack(track);
+      stream=remoteStreams[track.kind];
     }
+    // Show remote tile
+    _upsertTile(pid, pname, stream, track.kind);
   };
 
   pc.onconnectionstatechange=function(){
-    if(pc.connectionState==='failed'){
-      // ICE restart
-      _sendOffer(pid,pname,rRef,true);
+    var state=pc.connectionState;
+    if(state==='failed'){
+      // Try ICE restart once
+      if(myId>pid && peers[pid]){
+        peers[pid].pc.restartIce ? peers[pid].pc.restartIce() : _doOffer(pid,rRef,true);
+      }
     }
-    if(pc.connectionState==='closed')_drop(pid);
+    if(state==='closed') _drop(pid);
   };
 
-  return pc;
+  pc.oniceconnectionstatechange=function(){
+    if(pc.iceConnectionState==='disconnected'){
+      setTimeout(function(){
+        if(pc.iceConnectionState==='disconnected') _drop(pid);
+      },8000);
+    }
+  };
 }
 
-async function _sendOffer(pid,pname,rRef,restart){
+async function _doOffer(pid, rRef, restart){
+  var entry=peers[pid];
+  if(!entry)return;
   try{
-    if(!peers[pid])_makePc(pid,pname,rRef);
-    var pc=peers[pid].pc;
-    var opts={offerToReceiveAudio:true,offerToReceiveVideo:true};
-    if(restart){opts.iceRestart=true;}
+    var pc=entry.pc;
+    var opts={offerToReceiveAudio:true, offerToReceiveVideo:true};
+    if(restart)opts.iceRestart=true;
     var offer=await pc.createOffer(opts);
     await pc.setLocalDescription(offer);
-    await rRef.collection('sig').add({t:'offer',fr:myId,fn:myName,to:pid,sdp:offer.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
-  }catch(e){console.warn('sendOffer',pid,e);}
+    await rRef.collection('sig').add({
+      t:'offer', fr:myId, fn:myName, to:pid,
+      sdp:offer.sdp,
+      ts:firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){console.warn('doOffer err',pid,e);}
 }
 
-// Show a remote participant's tile
-function _upsertTile(pid,pname,stream){
-  var existing=document.getElementById('rv-'+pid);
-  if(existing){existing.srcObject=stream;safePlay(existing);return;}
+// ── TILE MANAGEMENT ────────────────────────────────────────────────────────
 
-  document.getElementById('room-wait').style.display='none';
-  var tile=document.createElement('div');tile.className='vtile';tile.id='rv-wrap-'+pid;
+// Create or update a remote video tile
+function _upsertTile(pid, pname, stream, kind){
+  var vid=document.getElementById('rv-'+pid);
+  if(vid){
+    // Update existing tile's stream
+    if(vid.srcObject!==stream){vid.srcObject=stream;safePlay(vid);}
+    return;
+  }
+
+  // Hide the "waiting" message
+  var wait=document.getElementById('room-wait');
+  if(wait)wait.style.display='none';
+
+  // Build tile
+  var tile=document.createElement('div');
+  tile.className='vtile';tile.id='rv-wrap-'+pid;
 
   var v=document.createElement('video');
   v.id='rv-'+pid;
-  v.muted=false; // MUST be false — remote audio must play
-  // setAttribute is the ONLY reliable way for mobile playsinline
-  ['autoplay','playsinline','webkit-playsinline','x5-playsinline'].forEach(function(a){v.setAttribute(a,'');});
-  v.style.cssText='width:100%;height:100%;object-fit:cover;display:block;background:#000';
+  v.muted=false;  // Remote audio MUST play (not muted)
+  // Use setAttribute — the ONLY reliable cross-browser way for playsinline on iOS
+  ['autoplay','playsinline','webkit-playsinline','x5-playsinline'].forEach(function(a){
+    v.setAttribute(a,'');
+  });
+  v.style.cssText='width:100%;height:100%;object-fit:cover;display:block;background:#111';
 
-  var voff=document.createElement('div');voff.className='voff';voff.innerHTML='<span style="font-size:24px">\uD83D\uDCF7</span><span>\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629</span>';
-  var lbl=document.createElement('div');lbl.className='vname';lbl.textContent=pname||'\u0645\u0634\u0627\u0631\u0643';
+  var voff=document.createElement('div');
+  voff.className='voff';
+  voff.id='rv-off-'+pid;
+  voff.innerHTML='<span style="font-size:22px">\uD83D\uDCF7</span><span style="font-size:10px">\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629</span>';
+
+  var lbl=document.createElement('div');
+  lbl.className='vname';lbl.textContent=pname||'\u0645\u0634\u0627\u0631\u0643';
 
   tile.appendChild(v);tile.appendChild(voff);tile.appendChild(lbl);
+
+  // Append to grid BEFORE setting srcObject (required on some mobile browsers)
   document.getElementById('vgrid').appendChild(tile);
 
-  // Set srcObject AFTER DOM insertion (critical for some Android/iOS browsers)
   v.srcObject=stream;
   safePlay(v);
   _updateGrid();
 }
 
-// Show instructor cameras received from a peer
-// (When participant A receives instructor cams from instructor's PC)
-function _upsertInstructorTileFromPeer(idx,stream,fromPid){
-  var tileId='instr-tile-'+idx;
-  var vidId='instr-v'+idx;
-  var it=document.getElementById(tileId);
-  var iv=document.getElementById(vidId);
-  // Only show if this device is NOT the instructor (instructor already shows them locally)
-  // Check: if we have streams[idx-1] we're the instructor for that cam
-  if(streams[idx-1])return;
-  if(it&&iv){
-    if(iv.srcObject!==stream){iv.srcObject=stream;safePlay(iv);}
-    it.style.display='block';
-    _updateGrid();
-  }
+function _upsertInstructorTileFromPeer(idx,stream){
+  if(streams[idx-1])return; // I'm the instructor for this cam, already showing it locally
+  var it=document.getElementById('instr-tile-'+idx);
+  var iv=document.getElementById('instr-v'+idx);
+  if(!it||!iv)return;
+  if(iv.srcObject!==stream){iv.srcObject=stream;safePlay(iv);}
+  it.style.display='block';
+  _updateGrid();
 }
 
 function _drop(pid){
-  var e=peers[pid];if(e){try{e.pc.close();}catch(ex){}delete peers[pid];}
+  var e=peers[pid];
+  if(e){try{e.pc.close();}catch(ex){}delete peers[pid];}
   var w=document.getElementById('rv-wrap-'+pid);if(w)w.remove();
   _updateGrid();
 }
@@ -847,13 +922,14 @@ function _updateGrid(){
   var grid=document.getElementById('vgrid');
   var tiles=grid.querySelectorAll('.vtile').length;
   var wait=document.getElementById('room-wait');
-  // Count visible tiles (including instructor cam tiles)
-  var visible=tiles;
-  [1,2].forEach(function(n){var it=document.getElementById('instr-tile-'+n);if(it&&it.style.display!=='none')visible++;});
+  // Count all visible tiles
+  var vis=0;
+  grid.querySelectorAll('.vtile').forEach(function(t){if(t.style.display!=='none')vis++;});
+  [1,2].forEach(function(n){var it=document.getElementById('instr-tile-'+n);if(it&&it.style.display!=='none')vis++;});
   if(wait)wait.style.display=(tiles<=1)?'flex':'none';
-  if(visible<=1)grid.style.gridTemplateColumns='1fr';
-  else if(visible<=4)grid.style.gridTemplateColumns='repeat(2,1fr)';
-  else if(visible<=9)grid.style.gridTemplateColumns='repeat(3,1fr)';
+  if(vis<=1)grid.style.gridTemplateColumns='1fr';
+  else if(vis<=4)grid.style.gridTemplateColumns='repeat(2,1fr)';
+  else if(vis<=9)grid.style.gridTemplateColumns='repeat(3,1fr)';
   else grid.style.gridTemplateColumns='repeat(4,1fr)';
 }
 
@@ -862,14 +938,14 @@ async function leaveRoom(){
   peers={};
   unsubs.forEach(function(u){try{u();}catch(e){}});unsubs=[];
   try{await db.collection('rooms').doc(ROOM).collection('peers').doc(myId).delete();}catch(e){}
-  if(roomStream&&roomStream!==streams[0]&&roomStream!==streams[1]){roomStream.getTracks().forEach(function(t){t.stop();});}
+  if(roomStream&&roomStream!==streams[0]&&roomStream!==streams[1]){
+    roomStream.getTracks().forEach(function(t){t.stop();});
+  }
   roomStream=null;myId=null;myName='';rMic=false;rCam=false;rFacing='user';
-  // Clear remote tiles
   document.querySelectorAll('#vgrid .vtile:not(#my-tile)').forEach(function(el){el.remove();});
-  // Hide instructor tiles
   document.getElementById('instr-tile-1').style.display='none';
   document.getElementById('instr-tile-2').style.display='none';
-  var wait=document.getElementById('room-wait');if(wait)wait.style.display='flex';
+  var wm=document.getElementById('room-wait');if(wm)wm.style.display='flex';
   var mv=document.getElementById('my-video');mv.srcObject=null;
   document.getElementById('my-voff').className='voff';
   document.getElementById('room-active').style.display='none';
@@ -877,58 +953,54 @@ async function leaveRoom(){
   var b=document.getElementById('btn-join');b.disabled=false;b.textContent='\u062f\u062e\u0648\u0644 \u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';
   document.getElementById('rff').className='face-btn active';
   document.getElementById('rfb').className='face-btn';
-  _syncRoomControls();
-  _updateGrid();
+  _syncRoomControls();_updateGrid();
   toast('\u063a\u0627\u062f\u0631\u062a \u0627\u0644\u063a\u0631\u0641\u0629');
 }
 
-// Room controls
 function roomToggleMic(){
   if(!roomStream)return;var at=roomStream.getAudioTracks()[0];if(!at)return;
-  rMic=!rMic;at.enabled=!rMic;
-  var b=document.getElementById('my-mic-badge');if(b)b.style.display=rMic?'block':'none';
-  _syncRoomControls();toast(rMic?'\u0645\u064a\u0643 \u0645\u0643\u062a\u0648\u0645':'\u0645\u064a\u0643 \u0645\u0641\u0639\u0651\u0644');
+  rMic=!rMic;at.enabled=!rMic;_syncRoomControls();
+  toast(rMic?'\u0645\u064a\u0643 \u0645\u0643\u062a\u0648\u0645':'\u0645\u064a\u0643 \u0645\u0641\u0639\u0651\u0644');
 }
 function roomToggleCam(){
   if(!roomStream)return;var vt=roomStream.getVideoTracks()[0];if(!vt)return;
   rCam=!rCam;vt.enabled=!rCam;
   document.getElementById('my-voff').className='voff'+(rCam?' on':'');
   document.getElementById('my-video').style.opacity=rCam?'0':'1';
-  _syncRoomControls();toast(rCam?'\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629':'\u0643\u0627\u0645\u064a\u0631\u0627 \u0634\u063a\u0627\u0644\u0629');
+  _syncRoomControls();
+  toast(rCam?'\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629':'\u0643\u0627\u0645\u064a\u0631\u0627 \u0634\u063a\u0627\u0644\u0629');
 }
 async function roomSetFace(face){
   rFacing=face==='front'?'user':'environment';
   document.getElementById('rff').className='face-btn'+(face==='front'?' active':'');
   document.getElementById('rfb').className='face-btn'+(face==='back'?' active':'');
   if(!roomStream)return;
-  // Get new video track
   var ns=null;
   var tries=[{video:{facingMode:{ideal:rFacing}},audio:false},{video:true,audio:false}];
   for(var i=0;i<tries.length;i++){try{ns=await navigator.mediaDevices.getUserMedia(tries[i]);break;}catch(e){}}
   if(!ns){toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627');return;}
-  var newVT=ns.getVideoTracks()[0];
-  if(!newVT)return;
-  // Replace in all peer connections
+  var newVT=ns.getVideoTracks()[0];if(!newVT)return;
   Object.keys(peers).forEach(function(pid){
-    var pc=peers[pid].pc;
-    var sender=pc.getSenders().find(function(s){return s.track&&s.track.kind==='video'&&s.track.id===roomStream.getVideoTracks()[0]&&s.track.id!==undefined;});
-    if(!sender){sender=pc.getSenders().find(function(s){return s.track&&s.track.kind==='video';});}
+    var sender=peers[pid].pc.getSenders().find(function(s){return s.track&&s.track.kind==='video'&&roomStream.getVideoTracks().some(function(t){return t.id===s.track.id;});});
     if(sender)sender.replaceTrack(newVT).catch(function(){});
   });
-  // Replace in local stream
   var old=roomStream.getVideoTracks()[0];if(old){roomStream.removeTrack(old);old.stop();}
   roomStream.addTrack(newVT);
   var mv=document.getElementById('my-video');mv.srcObject=null;mv.srcObject=roomStream;safePlay(mv);
   toast(face==='front'?'\u0643\u0627\u0645\u064a\u0631\u0627 \u0623\u0645\u0627\u0645\u064a\u0629':'\u0643\u0627\u0645\u064a\u0631\u0627 \u062e\u0644\u0641\u064a\u0629');
 }
 function _syncRoomControls(){
-  var bm=document.getElementById('room-btn-mic');var bc=document.getElementById('room-btn-cam');
+  var bm=document.getElementById('room-btn-mic');
+  var bc=document.getElementById('room-btn-cam');
   if(bm){bm.textContent=rMic?'\uD83D\uDD07 \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0645\u064a\u0643':'\uD83C\uDF99\uFE0F \u0643\u062a\u0645 \u0627\u0644\u0645\u064a\u0643';bm.className=rMic?'btn btn-amber btn-sm':'btn btn-gray btn-sm';}
   if(bc){bc.textContent=rCam?'\uD83D\uDCF7 \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0643\u0627\u0645':'\uD83D\uDCF7 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u0643\u0627\u0645';bc.className=rCam?'btn btn-amber btn-sm':'btn btn-gray btn-sm';}
 }
-function _permMsg(msg,type){var el=document.getElementById('room-perm-msg');if(!el)return;el.textContent=msg;el.style.cssText='display:block;max-width:280px;margin:0 auto 10px;padding:6px 12px;border-radius:6px;font-size:12px;text-align:center;background:'+(type==='amber'?'var(--amber-bg);color:var(--amber-text)':'var(--red-bg);color:var(--red-text)');}
+function _permMsg(msg,type){
+  var el=document.getElementById('room-perm-msg');if(!el)return;
+  el.textContent=msg;el.style.display='block';
+  el.style.cssText='display:block;max-width:280px;margin:0 auto 10px;padding:6px 12px;border-radius:6px;font-size:12px;text-align:center;background:'+(type==='amber'?'var(--amber-bg);color:var(--amber-text)':'var(--red-bg);color:var(--red-text)');
+}
 
-// ═══════════════════════════════════════════════════════
 // RECORDING — independent from all cameras above
 // Has its own camera stream (recStream)
 // Canvas compositor: recStream + streams[0] + streams[1] + room participants
