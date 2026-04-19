@@ -198,7 +198,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
               <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="1" y="6" width="18" height="14" rx="2" stroke="#444" stroke-width="1.5"/><path d="M19 10l8-4v14l-8-4V10z" stroke="#444" stroke-width="1.5"/></svg>
               <span>الكاميرا الرئيسية</span>
             </div>
-            <video id="vid-1" autoplay muted playsinline style="display:none;width:100%;height:100%;object-fit:cover"></video>
+            <video id="vid-1" autoplay muted playsinline webkit-playsinline x5-playsinline style="display:none;width:100%;height:100%;object-fit:cover"></video>
             <div class="cam-off-cover" id="off-1"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><line x1="2" y1="2" x2="20" y2="20" stroke="#555" stroke-width="2" stroke-linecap="round"/><rect x="1" y="4" width="13" height="11" rx="2" stroke="#555" stroke-width="1.5"/></svg><span>متوقفة</span></div>
             <div class="cam-label">الرئيسية</div>
           </div>
@@ -218,7 +218,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
               <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="1" y="6" width="18" height="14" rx="2" stroke="#444" stroke-width="1.5"/><path d="M19 10l8-4v14l-8-4V10z" stroke="#444" stroke-width="1.5"/><rect x="6" y="10" width="6" height="5" rx="1" stroke="#444" stroke-width="1.2"/></svg>
               <span>السبورة / الشاشة</span>
             </div>
-            <video id="vid-2" autoplay muted playsinline style="display:none;width:100%;height:100%;object-fit:cover"></video>
+            <video id="vid-2" autoplay muted playsinline webkit-playsinline x5-playsinline style="display:none;width:100%;height:100%;object-fit:cover"></video>
             <div class="cam-off-cover" id="off-2"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><line x1="2" y1="2" x2="20" y2="20" stroke="#555" stroke-width="2" stroke-linecap="round"/><rect x="1" y="4" width="13" height="11" rx="2" stroke="#555" stroke-width="1.5"/></svg><span>متوقفة</span></div>
             <div class="cam-label">السبورة</div>
           </div>
@@ -273,7 +273,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div class="room-grid" id="room-grid" style="grid-template-columns:1fr">
         <!-- Local tile always first -->
         <div class="p-tile" id="my-tile">
-          <video id="my-video" autoplay muted playsinline></video>
+          <video id="my-video" autoplay muted playsinline webkit-playsinline x5-playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>
           <div class="t-off" id="my-vid-off">
             <span style="font-size:30px">📷</span>
             <span style="font-size:11px;color:#555">الكاميرا متوقفة</span>
@@ -303,20 +303,43 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       </div>
     </div>
 
-    <!-- RECORDING ROW -->
-    <div class="rec-row">
-      <div class="rec-left">
-        <div class="rec-dot" id="rec-dot"></div>
-        <div class="timer" id="timer">00:00:00</div>
-        <div class="rec-status" id="rec-status">الكاميرا غير مفعّلة</div>
+    <!-- RECORDING SECTION - independent of instructor cameras and training room -->
+    <div class="card" style="padding:14px 18px;margin-bottom:0">
+      <div class="card-title" style="margin-bottom:10px">🎬 تسجيل الجلسة</div>
+      <!-- Recording camera selector -->
+      <div id="rec-cam-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-primary btn-sm" id="btn-rec-cam-open" onclick="openRecCam()">تفعيل كاميرا التسجيل</button>
+            <button class="btn btn-gray btn-sm" id="btn-rec-cam-close" onclick="closeRecCam()" style="display:none">إغلاق الكاميرا</button>
+            <div class="face-toggle" id="rec-face-wrap" style="display:none">
+              <button class="face-btn active" id="rec-face-front" onclick="setRecFace('front')">📷 أمامية</button>
+              <button class="face-btn" id="rec-face-back" onclick="setRecFace('back')">📸 خلفية</button>
+            </div>
+          </div>
+          <span style="font-size:12px;color:var(--text2)">يسجّل كاميرات المدرس + المشاركين تلقائياً</span>
+        </div>
+        <div id="rec-cam-preview-wrap" style="display:none;margin-bottom:8px">
+          <div class="cam-box" style="max-height:160px;aspect-ratio:16/9">
+            <video id="rec-cam-vid" autoplay muted playsinline webkit-playsinline x5-playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>
+            <div class="cam-label">كاميرا التسجيل</div>
+          </div>
+        </div>
       </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="btn-rec" onclick="toggleRec()" disabled>▶ بدء التسجيل</button>
-        <button class="btn btn-green" id="btn-save-rec" onclick="saveSession()" style="display:none">☁️ رفع وحفظ</button>
-        <button class="btn btn-danger btn-sm" id="btn-discard" onclick="discardRec()" style="display:none">حذف</button>
+      <div class="rec-row" style="padding:10px 0;border:none;margin-bottom:0">
+        <div class="rec-left">
+          <div class="rec-dot" id="rec-dot"></div>
+          <div class="timer" id="timer">00:00:00</div>
+          <div class="rec-status" id="rec-status">جاهز للتسجيل</div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-rec" onclick="toggleRec()">▶ بدء التسجيل</button>
+          <button class="btn btn-green" id="btn-save-rec" onclick="saveSession()" style="display:none">☁️ رفع وحفظ</button>
+          <button class="btn btn-danger btn-sm" id="btn-discard" onclick="discardRec()" style="display:none">حذف</button>
+        </div>
       </div>
+      <div class="up-prog" id="up-prog"><div class="up-fill" id="up-fill"></div></div>
     </div>
-    <div class="up-prog" id="up-prog"><div class="up-fill" id="up-fill"></div></div>
 
     <div class="card">
       <div class="card-title">تفاصيل الجلسة</div>
@@ -448,13 +471,10 @@ async function openCameras(){
   try{
     await activateCam(1);
     await activateCam(2);
-    document.getElementById('cam-sel-wrap')&&(document.getElementById('cam-sel-wrap').style.display='block');
     document.getElementById('ctrl-cam-1').style.display='block';
     document.getElementById('ctrl-cam-2').style.display='block';
     document.getElementById('btn-open-cams').style.display='none';
     document.getElementById('btn-close-cams').style.display='';
-    document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u0627\u0646 \u062c\u0627\u0647\u0632\u062a\u0627\u0646';
-    document.getElementById('btn-rec').disabled=false;
     toast('\u2705 \u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u064a\u0646');
   }catch(e){toast('\u26a0\ufe0f '+e.message);}
 }
@@ -462,28 +482,24 @@ async function openCameras(){
 async function activateCam(n){
   var idx=n-1;
   if(streams[idx]){streams[idx].getTracks().forEach(function(t){t.stop();});}
-  try{
-    var s=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:camFace[idx]},
-      audio:n===1
-    });
-    streams[idx]=s;
-    var v=document.getElementById('vid-'+n);v.srcObject=s;v.style.display='block';
-    document.getElementById('cam-ph-'+n).style.display='none';
-    document.getElementById('off-'+n).className='cam-off-cover';
-    camEnabled[idx]=true;
-    updateTogBtn(n,true);
-  }catch(e){
-    // Try without facingMode constraint if environment not available
-    try{
-      var s2=await navigator.mediaDevices.getUserMedia({video:true,audio:n===1});
-      streams[idx]=s2;
-      var v2=document.getElementById('vid-'+n);v2.srcObject=s2;v2.style.display='block';
-      document.getElementById('cam-ph-'+n).style.display='none';
-      document.getElementById('off-'+n).className='cam-off-cover';
-      camEnabled[idx]=true;updateTogBtn(n,true);
-    }catch(e2){toast('\u0643\u0627\u0645\u064a\u0631\u0627 '+n+': '+e2.message);}
+  // Try facingMode constraints in order: exact → ideal → none (mobile fallback chain)
+  var tries=[
+    {video:{facingMode:{ideal:camFace[idx]}},audio:n===1},
+    {video:true,audio:n===1},
+    {video:true,audio:n===1}
+  ];
+  var s=null;
+  for(var i=0;i<tries.length;i++){
+    try{s=await navigator.mediaDevices.getUserMedia(tries[i]);break;}
+    catch(e){if(i===tries.length-1){toast('\u0643\u0627\u0645\u064a\u0631\u0627 '+n+': '+e.message);return;}}
   }
+  streams[idx]=s;
+  var v=document.getElementById('vid-'+n);
+  v.srcObject=s;v.style.display='block';
+  v.play().catch(function(){}); // required on iOS Safari
+  document.getElementById('cam-ph-'+n).style.display='none';
+  document.getElementById('off-'+n).className='cam-off-cover';
+  camEnabled[idx]=true;updateTogBtn(n,true);
 }
 
 async function setFace(n,face){
@@ -507,7 +523,6 @@ function closeCameras(){
   [0,1].forEach(function(i){if(streams[i]){streams[i].getTracks().forEach(function(t){t.stop();});streams[i]=null;}camEnabled[i]=false;});
   [1,2].forEach(function(n){document.getElementById('vid-'+n).style.display='none';document.getElementById('cam-ph-'+n).style.display='flex';document.getElementById('off-'+n).className='cam-off-cover';document.getElementById('ctrl-cam-'+n).style.display='none';});
   document.getElementById('btn-open-cams').style.display='';document.getElementById('btn-close-cams').style.display='none';
-  document.getElementById('btn-rec').disabled=true;document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u063a\u064a\u0631 \u0645\u0641\u0639\u0651\u0644\u0629';
   toast('\u062a\u0645 \u0625\u063a\u0644\u0627\u0642 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627\u062a');
 }
 
@@ -552,26 +567,29 @@ async function joinRoom(){
   if(!name){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643');return;}
   var btn=document.getElementById('btn-join');btn.disabled=true;btn.innerHTML='<span class="spin"></span> \u062c\u0627\u0631\u064d...';
 
-  // Get camera + mic
+  // Get camera + mic — mobile-safe: try facingMode exact → ideal → plain → audio-only → silent
   var gotCam=false;
-  try{roomStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:roomFacing},audio:true});gotCam=true;}
-  catch(e1){
-    try{roomStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});gotCam=true;}
+  var camTries=[
+    {video:{facingMode:{ideal:roomFacing},width:{ideal:1280},height:{ideal:720}},audio:true},
+    {video:true,audio:true},
+    {video:true,audio:true}
+  ];
+  for(var ci=0;ci<camTries.length;ci++){
+    try{roomStream=await navigator.mediaDevices.getUserMedia(camTries[ci]);gotCam=true;break;}catch(e){}
+  }
+  if(!gotCam){
+    try{roomStream=await navigator.mediaDevices.getUserMedia({video:false,audio:true});_showPermMsg('\u2139\ufe0f \u0628\u062f\u0648\u0646 \u0643\u0627\u0645\u064a\u0631\u0627 \u2014 \u0635\u0648\u062a \u0641\u0642\u0637','amber');}
     catch(e2){
-      try{roomStream=await navigator.mediaDevices.getUserMedia({video:false,audio:true});}
-      catch(e3){
-        try{var ac=new(window.AudioContext||window.webkitAudioContext)();roomStream=ac.createMediaStreamDestination().stream;}
-        catch(e4){btn.disabled=false;btn.textContent='\u062f\u062e\u0648\u0644 \u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u062c\u0647\u0627\u0632');return;}
-        _showPermMsg('\u26a0\ufe0f \u0628\u062f\u0648\u0646 \u0635\u0648\u062a \u0648\u0644\u0627 \u0635\u0648\u0631\u0629 \u2014 \u0645\u0634\u0627\u0647\u062f \u0641\u0642\u0637','red');
-      }
-      if(!gotCam)_showPermMsg('\u2139\ufe0f \u0628\u062f\u0648\u0646 \u0643\u0627\u0645\u064a\u0631\u0627 \u2014 \u0635\u0648\u062a \u0641\u0642\u0637','amber');
+      try{var ac=new(window.AudioContext||window.webkitAudioContext)();roomStream=ac.createMediaStreamDestination().stream;_showPermMsg('\u26a0\ufe0f \u0645\u0634\u0627\u0647\u062f \u0641\u0642\u0637 \u2014 \u0644\u0627 \u064a\u0648\u062c\u062f \u0635\u0648\u062a \u0648\u0644\u0627 \u0635\u0648\u0631\u0629','red');}
+      catch(e3){btn.disabled=false;btn.textContent='\u062f\u062e\u0648\u0644 \u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u062c\u0647\u0627\u0632');return;}
     }
   }
 
   myId=_uid(); myName=name;
 
-  // Local preview
+  // Local preview — iOS Safari needs explicit play() after srcObject
   var lv=document.getElementById('my-video');lv.srcObject=roomStream;
+  lv.play().catch(function(){});
   document.getElementById('my-name-lbl').textContent=name+' (\u0623\u0646\u062a)';
 
   // Show room UI
@@ -706,14 +724,48 @@ async function _offer(pid,pname,rRef,restart){
 
 function _upsertTile(pid,pname,stream){
   var ex=document.getElementById('rt-'+pid);
-  if(ex){ex.srcObject=stream;return;}
+  if(ex){
+    // Update existing stream (e.g. after track replace)
+    ex.srcObject=stream;
+    ex.play().catch(function(){});
+    return;
+  }
   document.getElementById('room-wait').style.display='none';
   var tile=document.createElement('div');tile.className='p-tile';tile.id='rt-wrap-'+pid;
-  var v=document.createElement('video');v.id='rt-'+pid;v.autoplay=true;v.playsinline=true;v.srcObject=stream;
-  var off=document.createElement('div');off.className='t-off';off.id='rt-off-'+pid;off.innerHTML='<span style="font-size:26px">📷</span><span style="font-size:11px;color:#555">\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629</span>';
+
+  // Build video element fully before setting srcObject — critical for iOS Safari
+  var v=document.createElement('video');
+  v.id='rt-'+pid;
+  v.autoplay=true;
+  v.muted=false;          // must be false so remote audio plays
+  // setAttribute is the only reliable way to set playsinline on mobile
+  v.setAttribute('playsinline','');
+  v.setAttribute('webkit-playsinline','');
+  v.setAttribute('x5-playsinline','');
+  v.setAttribute('autoplay','');
+  v.style.cssText='width:100%;height:100%;object-fit:cover;display:block';
+
+  var off=document.createElement('div');off.className='t-off';off.id='rt-off-'+pid;
+  off.innerHTML='<span style="font-size:26px">\uD83D\uDCF7</span><span style="font-size:11px;color:#555">\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629</span>';
   var lbl=document.createElement('div');lbl.className='t-name';lbl.textContent=pname||'\u0645\u0634\u0627\u0631\u0643';
+
   tile.appendChild(v);tile.appendChild(off);tile.appendChild(lbl);
   document.getElementById('room-grid').appendChild(tile);
+
+  // Set srcObject AFTER appending to DOM — required on some mobile browsers
+  v.srcObject=stream;
+  // Explicit play() — needed on iOS because autoplay attribute alone is not enough
+  v.play().catch(function(err){
+    // If autoplay blocked, add a click-to-play fallback overlay
+    if(err.name==='NotAllowedError'){
+      var playBtn=document.createElement('div');
+      playBtn.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);cursor:pointer;z-index:10;color:#fff;font-size:14px;';
+      playBtn.textContent='\u25b6 اضغط لتشغيل الصوت';
+      playBtn.onclick=function(){v.play().catch(function(){});playBtn.remove();};
+      tile.appendChild(playBtn);
+    }
+  });
+
   _updateGrid();
 }
 
@@ -776,24 +828,26 @@ async function roomSetFace(face){
   document.getElementById('room-face-front').className='face-btn'+(face==='front'?' active':'');
   document.getElementById('room-face-back').className='face-btn'+(face==='back'?' active':'');
   if(!roomStream)return;
-  // Replace video track with new facing
-  try{
-    var ns=await navigator.mediaDevices.getUserMedia({video:{facingMode:roomFacing},audio:false});
-    var newVT=ns.getVideoTracks()[0];
-    // Replace in all PeerConnections
-    Object.keys(peers).forEach(function(pid){
-      var pc=peers[pid].pc;
-      var sender=pc.getSenders().find(function(s){return s.track&&s.track.kind==='video';});
-      if(sender)sender.replaceTrack(newVT).catch(function(){});
-    });
-    // Stop old video track, replace in stream
-    var oldVT=roomStream.getVideoTracks()[0];
-    if(oldVT){roomStream.removeTrack(oldVT);oldVT.stop();}
-    roomStream.addTrack(newVT);
-    document.getElementById('my-video').srcObject=null;
-    document.getElementById('my-video').srcObject=roomStream;
-    toast(face==='front'?'\u0643\u0627\u0645\u064a\u0631\u0627 \u0623\u0645\u0627\u0645\u064a\u0629':'\u0643\u0627\u0645\u064a\u0631\u0627 \u062e\u0644\u0641\u064a\u0629');
-  }catch(e){toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627: '+e.message);}
+  // Replace video track — try exact then ideal then plain
+  var tries=[{video:{facingMode:{ideal:roomFacing}}},{video:true},{video:true}];
+  var ns=null;
+  for(var i=0;i<tries.length;i++){try{ns=await navigator.mediaDevices.getUserMedia(tries[i]);break;}catch(e){}}
+  if(!ns){toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627');return;}
+  var newVT=ns.getVideoTracks()[0];
+  // Replace track in all PeerConnections
+  Object.keys(peers).forEach(function(pid){
+    var pc=peers[pid].pc;
+    var sender=pc.getSenders().find(function(s){return s.track&&s.track.kind==='video';});
+    if(sender)sender.replaceTrack(newVT).catch(function(){});
+  });
+  // Replace in local stream
+  var oldVT=roomStream.getVideoTracks()[0];
+  if(oldVT){roomStream.removeTrack(oldVT);oldVT.stop();}
+  roomStream.addTrack(newVT);
+  var mv=document.getElementById('my-video');
+  mv.srcObject=null;mv.srcObject=roomStream;
+  mv.play().catch(function(){}); // iOS Safari
+  toast(face==='front'?'\u0643\u0627\u0645\u064a\u0631\u0627 \u0623\u0645\u0627\u0645\u064a\u0629':'\u0643\u0627\u0645\u064a\u0631\u0627 \u062e\u0644\u0641\u064a\u0629');
 }
 function _syncRoomControls(){
   var bm=document.getElementById('room-btn-mic');var bc=document.getElementById('room-btn-cam');
@@ -803,18 +857,64 @@ function _syncRoomControls(){
 function _showPermMsg(msg,type){var el=document.getElementById('room-perm-msg');if(!el)return;el.textContent=msg;el.style.cssText='display:block;max-width:300px;margin:0 auto 12px;padding:7px 12px;border-radius:6px;font-size:12px;text-align:center;background:'+(type==='amber'?'var(--amber-bg);color:var(--amber-text)':'var(--red-bg);color:var(--red-text)');}
 
 // ═══════════════════════════════════════════════════
-// CANVAS RECORDING  (all cameras + room participants)
+// RECORDING — fully independent from instructor cameras
+// Has its own camera stream (recCamStream)
+// Canvas compositor includes: recCamStream + streams[0] + streams[1] + room participants
 // ═══════════════════════════════════════════════════
 var mr=null,chunks=[],isRec=false,timerInt=null,elapsed=0,pendingBlob=null;
 var recCanvas=null,recCtx=null,recRafId=null,audioCtx=null;
+var recCamStream=null, recFacing='user';
 
 function getMime(){var t=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'];if(typeof MediaRecorder==='undefined')return'';for(var i=0;i<t.length;i++)if(MediaRecorder.isTypeSupported(t[i]))return t[i];return'';}
 
+// ── Recording camera (independent) ──────────────────
+async function openRecCam(){
+  var tries=[
+    {video:{facingMode:{ideal:recFacing}},audio:true},
+    {video:true,audio:true}
+  ];
+  var s=null;
+  for(var i=0;i<tries.length;i++){try{s=await navigator.mediaDevices.getUserMedia(tries[i]);break;}catch(e){}}
+  if(!s){toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u062a\u0641\u0639\u064a\u0644 \u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');return;}
+  if(recCamStream)recCamStream.getTracks().forEach(function(t){t.stop();});
+  recCamStream=s;
+  var v=document.getElementById('rec-cam-vid');v.srcObject=s;v.play().catch(function(){});
+  document.getElementById('rec-cam-preview-wrap').style.display='block';
+  document.getElementById('btn-rec-cam-open').style.display='none';
+  document.getElementById('btn-rec-cam-close').style.display='';
+  document.getElementById('rec-face-wrap').style.display='flex';
+  document.getElementById('rec-status').textContent='\u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u062c\u0627\u0647\u0632\u0629';
+  toast('\u2705 \u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u062c\u0627\u0647\u0632\u0629');
+}
+
+function closeRecCam(){
+  if(recCamStream){recCamStream.getTracks().forEach(function(t){t.stop();});recCamStream=null;}
+  document.getElementById('rec-cam-preview-wrap').style.display='none';
+  document.getElementById('btn-rec-cam-open').style.display='';
+  document.getElementById('btn-rec-cam-close').style.display='none';
+  document.getElementById('rec-face-wrap').style.display='none';
+  document.getElementById('rec-status').textContent='\u062c\u0627\u0647\u0632 \u0644\u0644\u062a\u0633\u062c\u064a\u0644';
+  toast('\u062a\u0645 \u0625\u063a\u0644\u0627\u0642 \u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');
+}
+
+async function setRecFace(face){
+  recFacing=face==='front'?'user':'environment';
+  document.getElementById('rec-face-front').className='face-btn'+(face==='front'?' active':'');
+  document.getElementById('rec-face-back').className='face-btn'+(face==='back'?' active':'');
+  if(recCamStream)await openRecCam();
+}
+
+// ── Video sources for canvas ─────────────────────────
 function getVideoSources(){
   var src=[];
+  // Recording camera (own stream)
+  var rcv=document.getElementById('rec-cam-vid');
+  if(recCamStream&&rcv.videoWidth>0)src.push({el:rcv,lbl:'\u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644'});
+  // Instructor cam 1
   var v1=document.getElementById('vid-1');if(streams[0]&&camEnabled[0]&&v1.videoWidth>0)src.push({el:v1,lbl:'\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'});
+  // Instructor cam 2
   var v2=document.getElementById('vid-2');if(streams[1]&&camEnabled[1]&&v2.videoWidth>0)src.push({el:v2,lbl:'\u0627\u0644\u0633\u0628\u0648\u0631\u0629'});
-  // Room participants (local + remote)
+  // Training room participants (local + remote)
   document.querySelectorAll('#room-grid .p-tile video').forEach(function(rv,i){
     if(rv.srcObject){
       var hasVid=rv.srcObject.getVideoTracks&&rv.srcObject.getVideoTracks().length>0&&rv.videoWidth>0;
@@ -852,23 +952,27 @@ function buildCompositeStream(){
   var audioTracks=[];
   try{
     audioCtx=new(window.AudioContext||window.webkitAudioContext)();var dest=audioCtx.createMediaStreamDestination();
-    var addAudio=function(s){var at=s.getAudioTracks();if(at.length){var src2=audioCtx.createMediaStreamSource(new MediaStream(at));src2.connect(dest);}};
-    if(streams[0])addAudio(streams[0]);
-    if(roomStream)addAudio(roomStream);
+    var addAudio=function(s){if(!s)return;var at=s.getAudioTracks();if(at.length){try{var src2=audioCtx.createMediaStreamSource(new MediaStream(at));src2.connect(dest);}catch(e){}}};
+    addAudio(recCamStream);
+    addAudio(streams[0]);addAudio(streams[1]);
+    addAudio(roomStream);
     document.querySelectorAll('#room-grid .p-tile video').forEach(function(rv){if(rv.srcObject)addAudio(rv.srcObject);});
     audioTracks=dest.stream.getAudioTracks();
-  }catch(e){if(streams[0])audioTracks=streams[0].getAudioTracks();}
+  }catch(e){if(recCamStream){var at2=recCamStream.getAudioTracks();if(at2.length)audioTracks=at2;}else if(streams[0]){audioTracks=streams[0].getAudioTracks();}}
   return new MediaStream(vidStream.getVideoTracks().concat(audioTracks));
 }
+
 function stopComposite(){if(recRafId){cancelAnimationFrame(recRafId);recRafId=null;}if(audioCtx){try{audioCtx.close();}catch(e){}audioCtx=null;}recCanvas=null;recCtx=null;}
 
 function toggleRec(){
   if(!isRec){
-    if(!streams[0]&&!streams[1]&&!roomStream){toast('\u0634\u063a\u0651\u0644 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627\u062a \u0623\u0648\u0644\u0627\u064b');return;}
+    // Can record from any available source — no requirement for cameras to be open
+    var hasSrc=recCamStream||streams[0]||streams[1]||roomStream;
+    if(!hasSrc){toast('\u0634\u063a\u0651\u0644 \u0643\u0627\u0645\u064a\u0631\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u0623\u0648 \u0643\u0627\u0645\u064a\u0631\u0627\u062a \u0627\u0644\u0645\u062f\u0631\u0633 \u0623\u0648\u0644\u0627\u064b');return;}
     var cs=buildCompositeStream();chunks=[];var mime=getMime();
     try{mr=new MediaRecorder(cs,mime?{mimeType:mime}:{});}catch(e){try{mr=new MediaRecorder(cs);}catch(e2){stopComposite();toast('\u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');return;}}
     mr.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data);};
-    mr.onstop=function(){stopComposite();pendingBlob=new Blob(chunks,{type:mr.mimeType||'video/webm'});document.getElementById('btn-save-rec').style.display='';document.getElementById('btn-discard').style.display='';document.getElementById('rec-status').textContent='\u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u062c\u0627\u0647\u0632';};
+    mr.onstop=function(){stopComposite();pendingBlob=new Blob(chunks,{type:mr.mimeType||'video/webm'});document.getElementById('btn-save-rec').style.display='';document.getElementById('btn-discard').style.display='';document.getElementById('rec-status').textContent='\u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u062c\u0627\u0647\u0632 \u2014 \u0627\u062d\u0641\u0638\u0647 \u0623\u0648 \u0627\u062d\u0630\u0641\u0647';};
     mr.start(1000);isRec=true;elapsed=0;
     document.getElementById('rec-dot').style.display='inline-block';
     document.getElementById('btn-rec').innerHTML='<span class="spin"></span> \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u062a\u0633\u062c\u064a\u0644';
@@ -891,7 +995,7 @@ function saveSession(){
     function(e){toast('\u26a0\ufe0f '+e.message);btn.disabled=false;btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';document.getElementById('up-prog').style.display='none';},
     function(){task.snapshot.ref.getDownloadURL().then(function(url){return db.collection('recordings').add({title:title,course:course,notes:notes,duration:dur,date:d.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'}),time:d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),videoUrl:url,storagePath:path,size:Math.round(pendingBlob.size/1024),createdAt:firebase.firestore.FieldValue.serverTimestamp()});}).then(function(){document.getElementById('up-fill').style.width='100%';pendingBlob=null;document.getElementById('btn-save-rec').style.display='none';document.getElementById('btn-discard').style.display='none';btn.disabled=false;btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';document.getElementById('ses-title').value='';document.getElementById('ses-notes').value='';document.getElementById('timer').textContent='00:00:00';document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u0627\u0646 \u062c\u0627\u0647\u0632\u062a\u0627\u0646';setTimeout(function(){document.getElementById('up-prog').style.display='none';document.getElementById('up-fill').style.width='0%';},600);loadHistory();toast('\u2705 \u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');}).catch(function(e){toast('\u26a0\ufe0f '+e.message);btn.disabled=false;btn.innerHTML='\u2601\ufe0f \u0631\u0641\u0639 \u0648\u062d\u0641\u0638';document.getElementById('up-prog').style.display='none';});});
 }
-function discardRec(){pendingBlob=null;stopComposite();document.getElementById('btn-save-rec').style.display='none';document.getElementById('btn-discard').style.display='none';document.getElementById('timer').textContent='00:00:00';document.getElementById('rec-status').textContent='\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u062a\u0627\u0646 \u062c\u0627\u0647\u0632\u062a\u0627\u0646';toast('\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');}
+function discardRec(){pendingBlob=null;stopComposite();document.getElementById('btn-save-rec').style.display='none';document.getElementById('btn-discard').style.display='none';document.getElementById('timer').textContent='00:00:00';document.getElementById('rec-status').textContent='\u062c\u0627\u0647\u0632 \u0644\u0644\u062a\u0633\u062c\u064a\u0644';toast('\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062a\u0633\u062c\u064a\u0644');}
 
 // ═══════════════════════════════════════════════════
 // COURSES & ATTENDANCE
