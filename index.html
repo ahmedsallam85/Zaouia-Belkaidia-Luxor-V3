@@ -137,6 +137,39 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .cam-sel-row label{font-size:12px;color:var(--text2);white-space:nowrap}
 .cam-sel-row select{flex:1;min-width:120px;padding:5px 10px;font-size:12px}
 @media(max-width:540px){.metrics{grid-template-columns:1fr 1fr}}
+/* AUTH SCREEN */
+.auth-wrap{max-width:400px;margin:0 auto;text-align:center;padding:20px 10px}
+.auth-role-btns{display:flex;gap:10px;justify-content:center;margin-bottom:18px}
+.role-btn{flex:1;max-width:160px;padding:18px 10px;border:2px solid var(--border2);border-radius:var(--radius);background:var(--surface);cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.role-btn:hover{border-color:var(--blue);background:var(--blue-bg)}
+.role-btn.selected{border-color:var(--blue);background:var(--blue-bg)}
+.role-btn .role-icon{font-size:32px;margin-bottom:6px}
+.role-btn .role-name{font-size:13px;font-weight:700;color:var(--text)}
+.role-btn .role-hint{font-size:11px;color:var(--text3);margin-top:2px}
+/* WAITING ROOM (for unapproved students) */
+.wait-room{text-align:center;padding:28px 16px}
+.wait-spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 14px}
+/* ROLE BADGE on tile */
+.vtile .role-badge{position:absolute;top:5px;right:6px;font-size:10px;padding:1px 6px;border-radius:3px;font-weight:700;z-index:3;pointer-events:none}
+.rb-teacher{background:#1a5fa8;color:#fff}
+.rb-ta{background:#7a4a0a;color:#fff}
+.rb-student{background:rgba(0,0,0,.5);color:#fff}
+/* MUTED OVERLAY on tile */
+.vtile .mute-badge{position:absolute;top:5px;left:6px;font-size:13px;z-index:3;pointer-events:none;display:none}
+.vtile .mute-badge.on{display:block}
+/* TILE ACTIONS (for teacher: mute button on hover) */
+.vtile .tile-actions{position:absolute;bottom:28px;left:6px;display:none;gap:4px;z-index:4}
+.vtile:hover .tile-actions{display:flex}
+.tile-act-btn{background:rgba(0,0,0,.65);border:none;color:#fff;border-radius:4px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+/* FULLSCREEN TILE */
+.vtile.fullscreen{position:fixed;inset:0;z-index:500;border-radius:0;aspect-ratio:unset}
+.vtile.fullscreen .vname{font-size:14px;padding:3px 12px}
+.vtile.fullscreen .tile-actions{display:flex}
+/* APPROVAL PANEL (teacher sees pending students) */
+.approval-list{display:flex;flex-direction:column;gap:6px}
+.approval-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--amber-bg);border:1px solid #c49040;border-radius:var(--radius-sm);flex-wrap:wrap;gap:6px}
+.approval-name{font-size:13px;font-weight:600;color:var(--amber-text)}
+
 </style>
 </head>
 <body>
@@ -158,7 +191,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div class="h-date" id="h-date"></div>
     </div>
   </div>
-  <span class="cloud-badge" id="cloud-status" style="display:none">☁️ متصل</span>
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <span class="cloud-badge" id="cloud-status" style="display:none">☁️ متصل</span>
+    <button class="btn btn-sm" id="btn-manage-codes" onclick="openCodesModal()" style="display:none;font-size:11px" title="إدارة رموز الدخول">🔑 الرموز</button>
+  </div>
 </div>
 
 <div class="container">
@@ -172,23 +208,43 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="panel active" id="panel-record">
 
     <!-- LOBBY -->
+    <!-- ══ AUTH / LOBBY ══ -->
     <div id="room-lobby" class="card">
-      <div style="text-align:center;padding:18px 10px">
-        <div style="width:52px;height:52px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="1" y="3" width="18" height="13" rx="3" stroke="#1a5fa8" stroke-width="2"/><circle cx="6" cy="9.5" r="2.2" stroke="#1a5fa8" stroke-width="1.5"/><circle cx="17" cy="9.5" r="2.2" stroke="#1a5fa8" stroke-width="1.5"/><path d="M4 21h4M16 21h4" stroke="#1a5fa8" stroke-width="1.8" stroke-linecap="round"/></svg>
-        </div>
+
+      <!-- Step 1: Role selection -->
+      <div id="auth-step1" class="auth-wrap">
         <div style="font-size:16px;font-weight:700;margin-bottom:6px">غرفة التدريب المباشر</div>
-        <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.7">
-          أدخل اسمك واختر الكاميرا ثم ادخل الغرفة<br/>
-          يعمل من الهاتف والكمبيوتر — يدعم كاميرات USB
+        <div style="font-size:12px;color:var(--text2);margin-bottom:16px">اختر صلاحيتك للدخول</div>
+        <div class="auth-role-btns">
+          <div class="role-btn" id="role-btn-teacher" onclick="selectRole('teacher')">
+            <div class="role-icon">👨‍🏫</div>
+            <div class="role-name">مدرس</div>
+            <div class="role-hint">أو مساعد مدرس</div>
+          </div>
+          <div class="role-btn" id="role-btn-student" onclick="selectRole('student')">
+            <div class="role-icon">👨‍🎓</div>
+            <div class="role-name">طالب</div>
+            <div class="role-hint">يحتاج موافقة</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="goStep2()" style="font-size:14px;padding:9px 24px">التالي ←</button>
+      </div>
+
+      <!-- Step 2: Name + Code + Camera -->
+      <div id="auth-step2" style="display:none" class="auth-wrap">
+        <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:14px;font-size:14px;font-weight:700">
+          <span id="step2-role-icon"></span><span id="step2-role-label"></span>
         </div>
 
-        <!-- Name -->
         <input type="text" id="room-name" placeholder="أدخل اسمك..."
-          style="max-width:260px;text-align:center;margin:0 auto 10px;display:block;font-size:14px"
+          style="max-width:260px;text-align:center;margin:0 auto 8px;display:block;font-size:14px"
+          onkeydown="if(event.key==='Enter')document.getElementById('inp-code').focus()"/>
+
+        <input type="text" id="inp-code" placeholder="رمز الدخول..."
+          style="max-width:260px;text-align:center;margin:0 auto 10px;display:block;direction:ltr;letter-spacing:3px;font-size:15px;font-weight:700"
           onkeydown="if(event.key==='Enter')joinRoom()"/>
 
-        <!-- Camera selector (populated by enumerateDevices) -->
+        <!-- Camera -->
         <div style="max-width:320px;margin:0 auto 10px">
           <div class="cam-sel-row">
             <label>📷 الكاميرا:</label>
@@ -200,9 +256,21 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           </div>
         </div>
 
-        <div id="room-perm-msg" style="display:none;max-width:280px;margin:0 auto 10px;padding:6px 12px;border-radius:6px;font-size:12px;text-align:center"></div>
-        <button class="btn btn-primary" id="btn-join" onclick="joinRoom()" style="font-size:14px;padding:10px 24px">دخول غرفة التدريب</button>
-        <div style="margin-top:8px;font-size:11px;color:var(--text3)">كل من لديه الرابط يمكنه الدخول</div>
+        <div id="room-perm-msg" style="display:none;max-width:280px;margin:0 auto 8px;padding:6px 12px;border-radius:6px;font-size:12px;text-align:center"></div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button class="btn btn-sm" onclick="goStep1()">← رجوع</button>
+          <button class="btn btn-primary" id="btn-join" onclick="joinRoom()" style="font-size:14px;padding:9px 22px">دخول الغرفة</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Waiting for approval (students only) -->
+      <div id="auth-step3" style="display:none" class="auth-wrap">
+        <div class="wait-room">
+          <div class="wait-spin"></div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:8px">في انتظار الموافقة</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:14px">المدرس سيقبل طلبك قريباً...</div>
+          <button class="btn btn-danger btn-sm" onclick="cancelWaiting()">إلغاء</button>
+        </div>
       </div>
     </div>
 
@@ -219,13 +287,22 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         </div>
       </div>
 
+      <!-- APPROVAL PANEL (only shown to teacher/TA) -->
+      <div id="approval-panel" style="display:none;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:12px;font-weight:600;color:var(--amber-text)">⏳ طلبات الدخول (<span id="pending-count">0</span>)</span>
+        </div>
+        <div class="approval-list" id="approval-list"></div>
+      </div>
+
       <!-- VIDEO GRID — all tiles here -->
       <div class="vgrid" id="vgrid" style="grid-template-columns:1fr;margin-bottom:8px">
         <!-- My tile -->
-        <div class="vtile" id="my-tile">
+        <div class="vtile" id="my-tile" ondblclick="_toggleFullscreen(this)" title="اضغط مرتين للتكبير">
           <video id="my-video" style="width:100%;height:100%;object-fit:cover;display:block;background:#000"></video>
           <div class="voff" id="my-voff"><span style="font-size:22px">📷</span><span>الكاميرا متوقفة</span></div>
           <div class="vname" id="my-name-lbl">أنت</div>
+          <!-- Role badge injected by JS -->
         </div>
         <div class="wait-msg" id="room-wait">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#333" stroke-width="1.5"/><circle cx="7" cy="11" r="1.3" fill="#333"/><circle cx="11" cy="11" r="1.3" fill="#333"/><circle cx="15" cy="11" r="1.3" fill="#333"/></svg>
@@ -239,6 +316,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn btn-gray btn-sm" id="room-btn-mic" onclick="roomToggleMic()">🎙️ كتم</button>
             <button class="btn btn-gray btn-sm" id="room-btn-cam" onclick="roomToggleCam()">📷 إيقاف الكاميرا</button>
+            <!-- Teacher/TA only -->
+            <button class="btn btn-amber btn-sm" id="btn-mute-all" onclick="muteAll()" style="display:none" title="كتم جميع الطلاب">🔇 كتم الكل</button>
           </div>
           <!-- Camera switch: front/back + USB selector -->
           <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
@@ -349,6 +428,33 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="ov" id="ov-rename" onclick="closeOv('ov-rename')"><div class="modal" style="max-width:380px" onclick="event.stopPropagation()"><div class="mh"><div class="mt">✏️ إعادة تسمية</div></div><div class="form-group"><label class="form-label">الاسم الجديد</label><input type="text" id="rename-inp" onkeydown="if(event.key==='Enter')confirmRename()"/></div><div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="confirmRename()">حفظ</button><button class="btn btn-sm" onclick="closeOv('ov-rename')">إلغاء</button></div></div></div>
 <div class="ov" id="ov-vid" onclick="closeOv('ov-vid')"><div class="modal" style="max-width:680px" onclick="event.stopPropagation()"><div class="mh"><button class="btn btn-sm" onclick="closeVid()">✕ إغلاق</button><div class="mt" id="vid-mt"></div></div><video id="pb-video" controls playsinline webkit-playsinline></video><div style="margin-top:5px;font-size:11px;color:var(--text2);text-align:right" id="vid-mm"></div></div></div>
 <div class="toast" id="toast"></div>
+
+<!-- Room Codes Modal -->
+<div class="ov" id="ov-codes" onclick="closeOv('ov-codes')">
+  <div class="modal" style="max-width:480px" onclick="event.stopPropagation()">
+    <div class="mh">
+      <button class="btn btn-primary btn-sm" onclick="saveRoomCodes()">حفظ الرموز ✓</button>
+      <div class="mt">🔑 إدارة رموز الدخول</div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:12px">الرموز مشتركة مع جميع المدرسين — لا تشاركها مع الطلاب</div>
+
+    <div class="form-group">
+      <label class="form-label">🎓 رمز المدرس (Teacher Code)</label>
+      <input type="text" id="inp-teacher-code" placeholder="مثال: TEACH2024" style="direction:ltr;letter-spacing:2px;font-weight:700"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">📋 رمز مساعد المدرس (TA Code)</label>
+      <input type="text" id="inp-ta-code" placeholder="مثال: TA456" style="direction:ltr;letter-spacing:2px;font-weight:700"/>
+    </div>
+
+    <div class="div"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <button class="btn btn-green btn-sm" onclick="addStudentCodeRow()">+ إضافة طالب</button>
+      <span style="font-size:12px;font-weight:600">رموز الطلاب (لكل طالب رمز فريد)</span>
+    </div>
+    <div id="student-codes-list" style="max-height:240px;overflow-y:auto"></div>
+  </div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -554,18 +660,34 @@ async function getMedia(deviceId, facing, wantAudio){
 // ════════════════════════════════════════════
 // TRAINING ROOM — WebRTC full-mesh
 //
-// SIGNALING DESIGN (no race conditions):
-//  • Rule: peer with LARGER ID sends the offer
+// ROLES & ACCESS CONTROL
+//  Roles: 'teacher', 'ta' (teacher-assistant), 'student'
+//  Codes stored in Firestore config/room → {teacherCode, taCode, studentCodes:{name:code}}
+//  Flow:
+//   1. User picks role → enters code
+//   2. Code verified locally against Firestore config
+//   3. Teacher/TA → join immediately
+//   4. Student → written to pending/{id}, waits
+//   5. Teacher/TA sees approval panel, approves/rejects
+//   6. Approved student → moves to peers/{id}, joins room
+//
+// SIGNALING (no race conditions):
+//  • Larger ID sends offer — deterministic, no collision
 //  • ICE candidates buffered until remote desc set
-//  • ontrack builds MediaStream from e.track (not e.streams)
-//    because e.streams[0] is empty on some mobile browsers
-//  • ROOM version 'v5' — fresh Firestore state
+//  • ontrack builds MediaStream from e.track (mobile-safe)
+//
+// FULLSCREEN: double-click any tile to expand/collapse
+// MUTE CONTROL: teacher/TA can mute individual students
+//   via Firestore cmd/{pid} → {action:'mute'/'unmute'}
 // ════════════════════════════════════════════
-var ROOM='luxor-v5';
-var myId=null, myName='', roomStream=null;
-var peers={};   // pid → {pc, name, rRef, iceBuf:[]}
+var ROOM='luxor-v6';
+var myId=null, myName='', myRole='', roomStream=null;
+var peers={};   // pid → {pc, name, role, rRef, iceBuf:[]}
 var unsubs=[];
 var rMicOff=false, rCamOff=false, rFacing='user', rDeviceId='';
+var selectedRole='';   // 'teacher' | 'ta' | 'student'
+var pendingId=null;    // set while student is waiting for approval
+var roomCodes={teacherCode:'', taCode:'', studentCodes:{}};
 
 var ICE={
   iceServers:[
@@ -583,83 +705,222 @@ var ICE={
 
 function _uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 
+// ── AUTH: Role Selection UI ──────────────────────────────────
+function selectRole(role){
+  selectedRole=role;
+  document.getElementById('role-btn-teacher').className='role-btn'+(role==='teacher'?' selected':'');
+  document.getElementById('role-btn-student').className='role-btn'+(role==='student'?' selected':'');
+}
+function goStep2(){
+  if(!selectedRole){toast('\u26a0\ufe0f \u0627\u062e\u062a\u0631 \u0635\u0644\u0627\u062d\u064a\u062a\u0643 \u0623\u0648\u0644\u0627\u064b');return;}
+  document.getElementById('auth-step1').style.display='none';
+  document.getElementById('auth-step2').style.display='';
+  var icon=selectedRole==='teacher'?'\uD83D\uDC68\u200D\uD83C\uDFEB':'\uD83D\uDC68\u200D\uD83C\uDF93';
+  var lbl=selectedRole==='teacher'?'\u0645\u062f\u0631\u0633 \u0623\u0648 \u0645\u0633\u0627\u0639\u062f \u0645\u062f\u0631\u0633':'\u0637\u0627\u0644\u0628';
+  document.getElementById('step2-role-icon').textContent=icon;
+  document.getElementById('step2-role-label').textContent=lbl;
+  document.getElementById('room-name').focus();
+}
+function goStep1(){
+  document.getElementById('auth-step2').style.display='none';
+  document.getElementById('auth-step1').style.display='';
+}
+
+// Load room codes from Firestore once
+async function loadRoomCodes(){
+  try{
+    var doc=await db.collection('config').doc('room').get();
+    if(doc.exists){
+      roomCodes=Object.assign({teacherCode:'TEACHER123',taCode:'TA456',studentCodes:{}},doc.data());
+    }else{
+      // First time: set default codes
+      roomCodes={teacherCode:'TEACHER123',taCode:'TA456',studentCodes:{}};
+      await db.collection('config').doc('room').set(roomCodes);
+    }
+  }catch(e){roomCodes={teacherCode:'TEACHER123',taCode:'TA456',studentCodes:{}};}
+}
+
+// Verify entered code and return actual role or null
+function verifyCode(code,name){
+  code=code.trim().toUpperCase();
+  var tc=(roomCodes.teacherCode||'TEACHER123').toUpperCase();
+  var tac=(roomCodes.taCode||'TA456').toUpperCase();
+  if(code===tc) return 'teacher';
+  if(code===tac) return 'ta';
+  // Check student codes: each student has a unique code in studentCodes
+  var sc=roomCodes.studentCodes||{};
+  if(Object.values(sc).some(function(v){return v.toUpperCase()===code;})) return 'student';
+  // Also allow any code matching a student code keyed by name
+  if(sc[name]&&sc[name].toUpperCase()===code) return 'student';
+  return null;
+}
+
 async function joinRoom(){
   var name=document.getElementById('room-name').value.trim();
+  var code=document.getElementById('inp-code').value.trim();
   if(!name){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643');return;}
+  if(!code){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0631\u0645\u0632 \u0627\u0644\u062f\u062e\u0648\u0644');return;}
 
   var btn=document.getElementById('btn-join');
   btn.disabled=true;
   btn.innerHTML='<span class="spin"></span> \u062c\u0627\u0631\u064d...';
 
-  // Get selected camera (USB or built-in)
+  await loadRoomCodes();
+  var verifiedRole=verifyCode(code,name);
+  if(!verifiedRole){
+    btn.disabled=false; btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
+    toast('\u274c \u0631\u0645\u0632 \u0627\u0644\u062f\u062e\u0648\u0644 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d');return;
+  }
+  // If user chose teacher role but code is student code (or vice versa)
+  if(selectedRole==='teacher' && verifiedRole==='student'){
+    btn.disabled=false; btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
+    toast('\u274c \u0647\u0630\u0627 \u0627\u0644\u0631\u0645\u0632 \u0644\u0644\u0637\u0644\u0627\u0628 \u0641\u0642\u0637');return;
+  }
+
   var selCamId=document.getElementById('sel-cam').value;
-
-  // Get media
   roomStream=await getMedia(selCamId||'', lobbyFacing, true);
-
   if(!roomStream){
-    btn.disabled=false; btn.textContent='\u062f\u062e\u0648\u0644 \u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';
-    toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u062c\u0647\u0627\u0632'); return;
+    btn.disabled=false; btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
+    toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u062c\u0647\u0627\u0632');return;
   }
 
   var hasVid=roomStream.getVideoTracks().length>0;
   var hasMic=roomStream.getAudioTracks().length>0;
   if(!hasVid&&!hasMic) _permMsg('\u26a0\ufe0f \u0628\u062f\u0648\u0646 \u0635\u0648\u062a \u0648\u0644\u0627 \u0635\u0648\u0631\u0629','red');
-  else if(!hasVid)     _permMsg('\u2139\ufe0f \u0635\u0648\u062a \u0641\u0642\u0637 \u2014 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062d\u062c\u0648\u0628\u0629','amber');
+  else if(!hasVid)     _permMsg('\u2139\ufe0f \u0635\u0648\u062a \u0641\u0642\u0637','amber');
 
-  myId=_uid(); myName=name;
+  myId=_uid(); myName=name; myRole=verifiedRole;
   rFacing=lobbyFacing; rDeviceId=selCamId;
 
-  // Set up local preview — must set attributes BEFORE srcObject on some browsers
+  // Students go to pending first; teacher/TA join directly
+  if(verifiedRole==='student'){
+    await _enterPending(name, myId);
+  } else {
+    await _enterRoom(name, myId, verifiedRole);
+  }
+}
+
+// Student writes to pending collection and waits
+async function _enterPending(name, id){
+  pendingId=id;
+  var rRef=db.collection('rooms').doc(ROOM);
+  await rRef.collection('pending').doc(id).set({
+    name:name, id:id, at:firebase.firestore.FieldValue.serverTimestamp(), status:'waiting'
+  });
+  // Switch to waiting UI
+  document.getElementById('auth-step2').style.display='none';
+  document.getElementById('auth-step3').style.display='';
+
+  // Watch for approval/rejection
+  var unsub=rRef.collection('pending').doc(id).onSnapshot(function(doc){
+    if(!doc.exists) return;
+    var d=doc.data();
+    if(d.status==='approved'){
+      unsub();
+      doc.ref.delete().catch(function(){});
+      document.getElementById('auth-step3').style.display='none';
+      _enterRoom(myName, myId, 'student');
+    } else if(d.status==='rejected'){
+      unsub();
+      doc.ref.delete().catch(function(){});
+      pendingId=null;
+      document.getElementById('auth-step3').style.display='none';
+      document.getElementById('auth-step2').style.display='';
+      toast('\u274c \u062a\u0645 \u0631\u0641\u0636 \u0637\u0644\u0628\u0643. \u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0627\u0644\u0645\u062f\u0631\u0633.');
+      var btn=document.getElementById('btn-join');btn.disabled=false;btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
+    }
+  });
+}
+
+async function cancelWaiting(){
+  if(pendingId){
+    await db.collection('rooms').doc(ROOM).collection('pending').doc(pendingId).delete().catch(function(){});
+    pendingId=null;
+  }
+  if(roomStream){roomStream.getTracks().forEach(function(t){t.stop();});roomStream=null;}
+  document.getElementById('auth-step3').style.display='none';
+  document.getElementById('auth-step2').style.display='';
+  var btn=document.getElementById('btn-join');btn.disabled=false;btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
+}
+
+// ── ACTUAL ROOM JOIN ─────────────────────────────────────────
+async function _enterRoom(name, id, role){
+  // Local preview
   var mv=document.getElementById('my-video');
-  mobileVideo(mv, true);                // muted=true (local preview)
+  mobileVideo(mv,true);
   mv.srcObject=roomStream;
   safePlay(mv);
   document.getElementById('my-name-lbl').textContent=name+' (\u0623\u0646\u062a)';
-  if(!hasVid) document.getElementById('my-voff').className='voff on';
+  if(!roomStream||!roomStream.getVideoTracks().length)
+    document.getElementById('my-voff').className='voff on';
 
-  // Switch to room view
+  // Show role badge on my tile
+  _setTileRoleBadge('my-tile', role);
+
+  // Show/hide teacher controls
+  var isAuth=(role==='teacher'||role==='ta');
+  document.getElementById('btn-mute-all').style.display=isAuth?'':'none';
+
   document.getElementById('room-lobby').style.display='none';
   document.getElementById('room-active').style.display='block';
   document.getElementById('room-title-lbl').textContent=
     document.getElementById('ses-title').value.trim()||'\u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';
-
-  // Sync cam selector in room controls
   var rsel=document.getElementById('room-cam-sel');
-  if(rsel) rsel.value=selCamId||'';
+  if(rsel) rsel.value=rDeviceId||'';
   _syncRoomControls();
   _updateGrid();
 
   var rRef=db.collection('rooms').doc(ROOM);
   await rRef.set({active:true},{merge:true});
-  await rRef.collection('peers').doc(myId).set({name:name, at:firebase.firestore.FieldValue.serverTimestamp()});
+  await rRef.collection('peers').doc(id).set({name:name, role:role, at:firebase.firestore.FieldValue.serverTimestamp()});
 
-  // ─── Signal listeners (set up BEFORE reading peers to avoid missed signals) ───
+  // Teacher/TA: watch pending students
+  if(isAuth) _watchPending(rRef);
 
-  // Incoming offers
-  var u2=rRef.collection('sig').where('to','==',myId).where('t','==','offer')
+  // Watch for mute commands directed at me
+  var uCmd=rRef.collection('cmd').doc(id).onSnapshot(function(doc){
+    if(!doc.exists)return;
+    var d=doc.data();
+    if(d.action==='mute'&&!rMicOff){
+      rMicOff=true;
+      var at=roomStream&&roomStream.getAudioTracks()[0];
+      if(at)at.enabled=false;
+      _syncRoomControls();
+      toast('\uD83D\uDD07 \u0642\u0627\u0645 \u0627\u0644\u0645\u062f\u0631\u0633 \u0628\u0643\u062a\u0645 \u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646\u0643');
+    } else if(d.action==='unmute'&&rMicOff){
+      rMicOff=false;
+      var at=roomStream&&roomStream.getAudioTracks()[0];
+      if(at)at.enabled=true;
+      _syncRoomControls();
+      toast('\uD83C\uDF99\uFE0F \u0642\u0627\u0645 \u0627\u0644\u0645\u062f\u0631\u0633 \u0628\u062a\u0634\u063a\u064a\u0644 \u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646\u0643');
+    }
+    // Acknowledge (delete the command)
+    doc.ref.delete().catch(function(){});
+  });
+  unsubs.push(uCmd);
+
+  // Signal listeners
+  var u2=rRef.collection('sig').where('to','==',id).where('t','==','offer')
     .onSnapshot(function(snap){
       snap.docChanges().forEach(async function(ch){
         if(ch.type!=='added')return;
         var d=ch.doc.data();
         ch.doc.ref.delete().catch(function(){});
-        if(!peers[d.fr]) _makePc(d.fr, d.fn||d.fr, rRef);
+        if(!peers[d.fr]) _makePc(d.fr, d.fn||d.fr, d.role||'student', rRef);
         var entry=peers[d.fr]; if(!entry)return;
         try{
           await entry.pc.setRemoteDescription({type:'offer',sdp:d.sdp});
-          // Flush ICE buffer
           while(entry.iceBuf.length){
             await entry.pc.addIceCandidate(new RTCIceCandidate(entry.iceBuf.shift())).catch(function(){});
           }
           var ans=await entry.pc.createAnswer();
           await entry.pc.setLocalDescription(ans);
-          await rRef.collection('sig').add({t:'answer',fr:myId,to:d.fr,sdp:ans.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
+          await rRef.collection('sig').add({t:'answer',fr:id,to:d.fr,sdp:ans.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
         }catch(e){console.warn('handleOffer',e);}
       });
     });
 
-  // Incoming answers
-  var u3=rRef.collection('sig').where('to','==',myId).where('t','==','answer')
+  var u3=rRef.collection('sig').where('to','==',id).where('t','==','answer')
     .onSnapshot(function(snap){
       snap.docChanges().forEach(async function(ch){
         if(ch.type!=='added')return;
@@ -677,32 +938,26 @@ async function joinRoom(){
       });
     });
 
-  // Incoming ICE
-  var u4=rRef.collection('sig').where('to','==',myId).where('t','==','ice')
+  var u4=rRef.collection('sig').where('to','==',id).where('t','==','ice')
     .onSnapshot(function(snap){
       snap.docChanges().forEach(async function(ch){
         if(ch.type!=='added')return;
         var d=ch.doc.data();
         ch.doc.ref.delete().catch(function(){});
         var entry=peers[d.fr]; if(!entry||!d.c)return;
-        if(entry.pc.remoteDescription){
-          entry.pc.addIceCandidate(new RTCIceCandidate(d.c)).catch(function(){});
-        } else {
-          entry.iceBuf.push(d.c);
-        }
+        if(entry.pc.remoteDescription) entry.pc.addIceCandidate(new RTCIceCandidate(d.c)).catch(function(){});
+        else entry.iceBuf.push(d.c);
       });
     });
 
-  // ─── Peer presence ───────────────────────────────────────────────────────
-  // LARGER ID sends the offer — no collision possible
   var u1=rRef.collection('peers').onSnapshot(function(snap){
     snap.docChanges().forEach(function(ch){
-      if(ch.type==='added' && ch.doc.id!==myId){
-        var pid=ch.doc.id, pname=ch.doc.data().name||'\u0645\u0634\u0627\u0631\u0643';
+      if(ch.type==='added'&&ch.doc.id!==id){
+        var pid=ch.doc.id, pd=ch.doc.data();
+        var pname=pd.name||'\u0645\u0634\u0627\u0631\u0643', prole=pd.role||'student';
         if(!peers[pid]){
-          _makePc(pid, pname, rRef);
-          if(myId>pid) _doOffer(pid, rRef); // I have larger ID → I send offer
-          // else: they have larger ID → they will send me an offer
+          _makePc(pid, pname, prole, rRef);
+          if(id>pid) _doOffer(pid, rRef);
         }
       }
       if(ch.type==='removed') _drop(ch.doc.id);
@@ -710,117 +965,146 @@ async function joinRoom(){
     document.getElementById('room-count').textContent='\u{1F465} '+snap.size;
   });
 
-  unsubs=[u1,u2,u3,u4];
-  toast('\u2705 \u062f\u062e\u0644\u062a \u0627\u0644\u063a\u0631\u0641\u0629');
+  unsubs=[u1,u2,u3,u4,uCmd];
+  _showCodesBtn();
+  toast('\u2705 \u062f\u062e\u0644\u062a \u0627\u0644\u063a\u0631\u0641\u0629 \u0643\u2009'+_roleLabel(role));
 }
 
-function _makePc(pid, pname, rRef){
-  if(peers[pid])return;
-  var pc=new RTCPeerConnection(ICE);
-  peers[pid]={pc:pc, name:pname, rRef:rRef, iceBuf:[]};
+// ── PENDING APPROVAL WATCHER (teacher/TA only) ───────────────
+function _watchPending(rRef){
+  var u=rRef.collection('pending').where('status','==','waiting')
+    .onSnapshot(function(snap){
+      var panel=document.getElementById('approval-panel');
+      var list=document.getElementById('approval-list');
+      document.getElementById('pending-count').textContent=snap.size;
+      panel.style.display=snap.size>0?'block':'none';
+      list.innerHTML='';
+      snap.forEach(function(doc){
+        var d=doc.data();
+        var row=document.createElement('div');
+        row.className='approval-row';
+        row.innerHTML='<span class="approval-name">\uD83D\uDC68\u200D\uD83C\uDF93 '+esc(d.name)+'</span>'
+          +'<div style="display:flex;gap:5px">'
+          +'<button class="btn btn-green btn-sm" onclick="approveStudent(\''+d.id+'\')">\u2714 \u0642\u0628\u0648\u0644</button>'
+          +'<button class="btn btn-danger btn-sm" onclick="rejectStudent(\''+d.id+'\')">\u2716 \u0631\u0641\u0636</button>'
+          +'</div>';
+        list.appendChild(row);
+      });
+    });
+  unsubs.push(u);
+}
 
-  // Add our tracks
-  if(roomStream) roomStream.getTracks().forEach(function(t){pc.addTrack(t,roomStream);});
+async function approveStudent(sid){
+  await db.collection('rooms').doc(ROOM).collection('pending').doc(sid).update({status:'approved'});
+  toast('\u2705 \u062a\u0645 \u0642\u0628\u0648\u0644 \u0627\u0644\u0637\u0627\u0644\u0628');
+}
+async function rejectStudent(sid){
+  await db.collection('rooms').doc(ROOM).collection('pending').doc(sid).update({status:'rejected'});
+  toast('\u0644\u0642\u062f \u062a\u0645 \u0631\u0641\u0636 \u0637\u0644\u0628 \u0627\u0644\u062f\u062e\u0648\u0644');
+}
 
-  // ICE
-  pc.onicecandidate=function(e){
-    if(e.candidate) rRef.collection('sig').add({t:'ice',fr:myId,to:pid,c:e.candidate.toJSON(),ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
-  };
+// ── MUTE CONTROL ─────────────────────────────────────────────
+// Teacher/TA sends a mute command to a specific peer via Firestore
+function muteAll(){
+  var rRef=db.collection('rooms').doc(ROOM);
+  Object.keys(peers).forEach(function(pid){
+    var e=peers[pid]; if(!e||e.role==='teacher'||e.role==='ta')return;
+    rRef.collection('cmd').doc(pid).set({action:'mute',by:myId,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
+    // Update mute badge on tile
+    var mb=document.getElementById('mb-'+pid); if(mb)mb.className='mute-badge on';
+  });
+  toast('\uD83D\uDD07 \u062a\u0645 \u0643\u062a\u0645 \u062c\u0645\u064a\u0639 \u0627\u0644\u0637\u0644\u0627\u0628');
+}
+function mutePeer(pid){
+  var rRef=db.collection('rooms').doc(ROOM);
+  rRef.collection('cmd').doc(pid).set({action:'mute',by:myId,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
+  var mb=document.getElementById('mb-'+pid); if(mb)mb.className='mute-badge on';
+  toast('\uD83D\uDD07 \u062a\u0645 \u0643\u062a\u0645 \u0627\u0644\u0645\u0634\u0627\u0631\u0643');
+}
+function unmutePeer(pid){
+  var rRef=db.collection('rooms').doc(ROOM);
+  rRef.collection('cmd').doc(pid).set({action:'unmute',by:myId,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
+  var mb=document.getElementById('mb-'+pid); if(mb)mb.className='mute-badge';
+  toast('\uD83C\uDF99\uFE0F \u062a\u0645 \u062a\u0634\u063a\u064a\u0644 \u0645\u064a\u0643 \u0627\u0644\u0645\u0634\u0627\u0631\u0643');
+}
 
-  // ontrack — build stream from e.track (NOT e.streams — empty on some mobiles)
-  var trackStreams={};
-  pc.ontrack=function(e){
-    var track=e.track;
-    var streamId=(e.streams&&e.streams[0])?e.streams[0].id:track.kind;
-    if(!trackStreams[streamId]) trackStreams[streamId]=new MediaStream();
-    trackStreams[streamId].addTrack(track);
-    // Show tile when we have a video track, or audio-only
-    if(track.kind==='video'){
-      _upsertTile(pid, pname, trackStreams[streamId]);
-    } else if(track.kind==='audio'){
-      // Ensure audio plays — attach to existing tile or create audio-only tile
-      _ensureAudio(pid, pname, trackStreams[streamId]);
+// ── FULLSCREEN TILE ──────────────────────────────────────────
+var _fsId=null;
+function _toggleFullscreen(tile){
+  if(_fsId===tile.id){
+    tile.classList.remove('fullscreen');
+    _fsId=null;
+  }else{
+    if(_fsId){
+      var old=document.getElementById(_fsId);
+      if(old)old.classList.remove('fullscreen');
     }
-  };
-
-  pc.onconnectionstatechange=function(){
-    var s=pc.connectionState;
-    if(s==='failed'){ if(myId>pid) _doOffer(pid, rRef, true); }
-    if(s==='closed') _drop(pid);
-  };
-
-  pc.oniceconnectionstatechange=function(){
-    if(pc.iceConnectionState==='disconnected'){
-      setTimeout(function(){ if(peers[pid]&&pc.iceConnectionState==='disconnected') _drop(pid); },8000);
-    }
-  };
-}
-
-async function _doOffer(pid, rRef, restart){
-  var entry=peers[pid]; if(!entry)return;
-  try{
-    var opts={offerToReceiveAudio:true, offerToReceiveVideo:true};
-    if(restart) opts.iceRestart=true;
-    var offer=await entry.pc.createOffer(opts);
-    await entry.pc.setLocalDescription(offer);
-    await rRef.collection('sig').add({t:'offer',fr:myId,fn:myName,to:pid,sdp:offer.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
-  }catch(e){console.warn('doOffer',pid,e);}
-}
-
-// Create or update a remote video tile
-function _upsertTile(pid, pname, stream){
-  var vid=document.getElementById('rv-'+pid);
-  if(vid){
-    if(vid.srcObject!==stream){vid.srcObject=stream; safePlay(vid);}
-    return;
+    tile.classList.add('fullscreen');
+    _fsId=tile.id;
   }
-  var wait=document.getElementById('room-wait');
-  if(wait) wait.style.display='none';
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&_fsId){
+    var t=document.getElementById(_fsId);if(t)t.classList.remove('fullscreen');_fsId=null;
+  }
+});
 
-  var tile=document.createElement('div');
-  tile.className='vtile'; tile.id='rv-wrap-'+pid;
+// ── ROLE HELPERS ─────────────────────────────────────────────
+function _roleLabel(role){
+  return role==='teacher'?'\u0645\u062f\u0631\u0633':role==='ta'?'\u0645\u0633\u0627\u0639\u062f \u0645\u062f\u0631\u0633':'\u0637\u0627\u0644\u0628';
+}
+function _roleBadgeClass(role){
+  return role==='teacher'?'rb-teacher':role==='ta'?'rb-ta':'rb-student';
+}
+function _setTileRoleBadge(tileId, role){
+  var tile=document.getElementById(tileId); if(!tile)return;
+  var existing=tile.querySelector('.role-badge');
+  if(existing)existing.remove();
+  var b=document.createElement('div');
+  b.className='role-badge '+_roleBadgeClass(role);
+  b.textContent=role==='teacher'?'\u0645\u062f\u0631\u0633':role==='ta'?'\u0645\u0633\u0627\u0639\u062f':'\u0637\u0627\u0644\u0628';
+  tile.appendChild(b);
+}
 
-  var v=document.createElement('video');
-  v.id='rv-'+pid;
-  mobileVideo(v, false); // NOT muted — remote audio must play
+// ── TILE MANAGEMENT ─────────────────────────────────────────
+function _upsertTile(pid, pname, prole, stream){
+  var vid=document.getElementById('rv-'+pid);
+  if(vid){if(vid.srcObject!==stream){vid.srcObject=stream;safePlay(vid);}return;}
+  var wait=document.getElementById('room-wait');if(wait)wait.style.display='none';
+  var tile=document.createElement('div');tile.className='vtile';tile.id='rv-wrap-'+pid;
+  // Double-click → fullscreen
+  tile.addEventListener('dblclick',function(){_toggleFullscreen(tile);});
+  var _lTap=0;
+  tile.addEventListener('touchend',function(e){var n=Date.now();if(n-_lTap<340){e.preventDefault();_toggleFullscreen(tile);}_lTap=n;},{passive:false});
+  var v=document.createElement('video');v.id='rv-'+pid;
+  mobileVideo(v,false);
   v.style.cssText='width:100%;height:100%;object-fit:cover;display:block;background:#111';
-
-  var voff=document.createElement('div');
-  voff.className='voff'; voff.id='rv-off-'+pid;
+  var voff=document.createElement('div');voff.className='voff';voff.id='rv-off-'+pid;
   voff.innerHTML='<span style="font-size:22px">\uD83D\uDCF7</span><span>\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629</span>';
-
-  var lbl=document.createElement('div');
-  lbl.className='vname'; lbl.textContent=pname||'\u0645\u0634\u0627\u0631\u0643';
-
-  tile.appendChild(v); tile.appendChild(voff); tile.appendChild(lbl);
-
-  // Append FIRST, then set srcObject — required on some Android/iOS
+  var mb=document.createElement('div');mb.className='mute-badge';mb.id='mb-'+pid;mb.textContent='\uD83D\uDD07';
+  var rb=document.createElement('div');rb.className='role-badge '+_roleBadgeClass(prole||'student');rb.textContent=_roleLabel(prole||'student');
+  var lbl=document.createElement('div');lbl.className='vname';lbl.textContent=pname||'\u0645\u0634\u0627\u0631\u0643';
+  var acts=document.createElement('div');acts.className='tile-actions';
+  if((myRole==='teacher'||myRole==='ta')&&(prole==='student'||!prole)){
+    acts.innerHTML='<button class="tile-act-btn" onclick="mutePeer(\''+pid+'\')">\uD83D\uDD07 \u0643\u062a\u0645</button>'
+      +'<button class="tile-act-btn" onclick="unmutePeer(\''+pid+'\')">\uD83C\uDF99 \u0641\u062a\u062d</button>';
+  }
+  tile.appendChild(v);tile.appendChild(voff);tile.appendChild(mb);tile.appendChild(rb);tile.appendChild(lbl);tile.appendChild(acts);
   document.getElementById('vgrid').appendChild(tile);
-  v.srcObject=stream;
-  safePlay(v);
+  v.srcObject=stream;safePlay(v);
   _updateGrid();
 }
 
-// Ensure audio plays for a peer even if they have no video
-function _ensureAudio(pid, pname, stream){
+function _ensureAudio(pid,pname,stream){
   var vid=document.getElementById('rv-'+pid);
-  if(vid){
-    // Merge audio into existing stream
-    stream.getAudioTracks().forEach(function(at){
-      if(!vid.srcObject.getTrackById(at.id)) vid.srcObject.addTrack(at);
-    });
-    return;
-  }
-  // Audio-only tile (no camera)
-  _upsertTile(pid, pname+'(\uD83D\uDD07)', stream);
-  var v=document.getElementById('rv-'+pid);
-  if(v) v.style.background='#0d1117';
+  if(vid){stream.getAudioTracks().forEach(function(at){if(!vid.srcObject.getTrackById(at.id))vid.srcObject.addTrack(at);});return;}
+  _upsertTile(pid,pname+'(\uD83D\uDD07)',null,stream);
+  var v=document.getElementById('rv-'+pid);if(v)v.style.background='#0d1117';
 }
 
 function _drop(pid){
-  var e=peers[pid];
-  if(e){try{e.pc.close();}catch(ex){}delete peers[pid];}
-  var w=document.getElementById('rv-wrap-'+pid); if(w)w.remove();
+  var e=peers[pid];if(e){try{e.pc.close();}catch(ex){}delete peers[pid];}
+  var w=document.getElementById('rv-wrap-'+pid);if(w)w.remove();
   _updateGrid();
 }
 
@@ -828,11 +1112,47 @@ function _updateGrid(){
   var grid=document.getElementById('vgrid');
   var tiles=grid.querySelectorAll('.vtile').length;
   var wait=document.getElementById('room-wait');
-  if(wait) wait.style.display=(tiles<=1)?'flex':'none';
-  if(tiles<=1)      grid.style.gridTemplateColumns='1fr';
-  else if(tiles<=4) grid.style.gridTemplateColumns='repeat(2,1fr)';
-  else if(tiles<=9) grid.style.gridTemplateColumns='repeat(3,1fr)';
-  else              grid.style.gridTemplateColumns='repeat(4,1fr)';
+  if(wait)wait.style.display=(tiles<=1)?'flex':'none';
+  if(tiles<=1)grid.style.gridTemplateColumns='1fr';
+  else if(tiles<=4)grid.style.gridTemplateColumns='repeat(2,1fr)';
+  else if(tiles<=9)grid.style.gridTemplateColumns='repeat(3,1fr)';
+  else grid.style.gridTemplateColumns='repeat(4,1fr)';
+}
+
+function _makePc(pid,pname,prole,rRef){
+  if(peers[pid])return;
+  var pc=new RTCPeerConnection(ICE);
+  peers[pid]={pc:pc,name:pname,role:prole||'student',rRef:rRef,iceBuf:[]};
+  if(roomStream)roomStream.getTracks().forEach(function(t){pc.addTrack(t,roomStream);});
+  pc.onicecandidate=function(e){if(e.candidate)rRef.collection('sig').add({t:'ice',fr:myId,to:pid,c:e.candidate.toJSON(),ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});};
+  var tStreams={};
+  pc.ontrack=function(e){
+    var track=e.track;
+    var sid=(e.streams&&e.streams[0])?e.streams[0].id:track.kind;
+    if(!tStreams[sid])tStreams[sid]=new MediaStream();
+    tStreams[sid].addTrack(track);
+    if(track.kind==='video')_upsertTile(pid,pname,prole||'student',tStreams[sid]);
+    else if(track.kind==='audio')_ensureAudio(pid,pname,tStreams[sid]);
+  };
+  pc.onconnectionstatechange=function(){
+    var s=pc.connectionState;
+    if(s==='failed'&&myId>pid)_doOffer(pid,rRef,true);
+    if(s==='closed')_drop(pid);
+  };
+  pc.oniceconnectionstatechange=function(){
+    if(pc.iceConnectionState==='disconnected')setTimeout(function(){if(peers[pid]&&pc.iceConnectionState==='disconnected')_drop(pid);},8000);
+  };
+}
+
+async function _doOffer(pid,rRef,restart){
+  var entry=peers[pid];if(!entry)return;
+  try{
+    var opts={offerToReceiveAudio:true,offerToReceiveVideo:true};
+    if(restart)opts.iceRestart=true;
+    var offer=await entry.pc.createOffer(opts);
+    await entry.pc.setLocalDescription(offer);
+    await rRef.collection('sig').add({t:'offer',fr:myId,fn:myName,role:myRole,to:pid,sdp:offer.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
+  }catch(e){console.warn('doOffer',pid,e);}
 }
 
 async function leaveRoom(){
@@ -842,20 +1162,72 @@ async function leaveRoom(){
   unsubs=[];
   try{await db.collection('rooms').doc(ROOM).collection('peers').doc(myId).delete();}catch(e){}
   if(roomStream){roomStream.getTracks().forEach(function(t){t.stop();}); roomStream=null;}
-  myId=null; myName=''; rMicOff=false; rCamOff=false;
-
+  myId=null; myName=''; myRole=''; rMicOff=false; rCamOff=false;
   document.querySelectorAll('#vgrid .vtile:not(#my-tile)').forEach(function(el){el.remove();});
-  var wait=document.getElementById('room-wait'); if(wait)wait.style.display='flex';
-  var mv=document.getElementById('my-video'); mv.srcObject=null;
+  var wait=document.getElementById('room-wait');if(wait)wait.style.display='flex';
+  var mv=document.getElementById('my-video');mv.srcObject=null;
   document.getElementById('my-voff').className='voff';
+  document.getElementById('approval-panel').style.display='none';
+  document.getElementById('btn-mute-all').style.display='none';
   document.getElementById('room-active').style.display='none';
   document.getElementById('room-lobby').style.display='block';
-  var b=document.getElementById('btn-join'); b.disabled=false; b.textContent='\u062f\u062e\u0648\u0644 \u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';
+  // Reset to step 1 of auth
+  document.getElementById('auth-step1').style.display='';
+  document.getElementById('auth-step2').style.display='none';
+  document.getElementById('auth-step3').style.display='none';
+  selectedRole='';
+  document.getElementById('role-btn-teacher').className='role-btn';
+  document.getElementById('role-btn-student').className='role-btn';
   document.getElementById('rff').className='face-btn active';
   document.getElementById('rfb').className='face-btn';
-  _syncRoomControls();
-  _updateGrid();
+  _syncRoomControls();_updateGrid();
+  if(_fsId){var ft=document.getElementById(_fsId);if(ft)ft.classList.remove('fullscreen');_fsId=null;}
   toast('\u063a\u0627\u062f\u0631\u062a \u0627\u0644\u063a\u0631\u0641\u0629');
+}
+
+// ── ROOM CODES MANAGEMENT ────────────────────────────────────
+async function openCodesModal(){
+  await loadRoomCodes();
+  document.getElementById('inp-teacher-code').value=roomCodes.teacherCode||'TEACHER123';
+  document.getElementById('inp-ta-code').value=roomCodes.taCode||'TA456';
+  var scl=document.getElementById('student-codes-list');scl.innerHTML='';
+  var sc=roomCodes.studentCodes||{};
+  Object.keys(sc).forEach(function(name){addStudentCodeRow(name,sc[name]);});
+  openOv('ov-codes');
+}
+function addStudentCodeRow(name,code){
+  var list=document.getElementById('student-codes-list');
+  var row=document.createElement('div');row.className='er';row.style.marginBottom='6px';
+  var ni=document.createElement('input');ni.type='text';ni.placeholder='\u0627\u0633\u0645 \u0627\u0644\u0637\u0627\u0644\u0628';ni.value=name||'';
+  var ci=document.createElement('input');ci.type='text';ci.placeholder='\u0631\u0645\u0632 \u0641\u0631\u064a\u062f';ci.value=code||'';ci.style.cssText='direction:ltr;letter-spacing:1px;font-weight:700;flex:0.8';
+  var gen=document.createElement('button');gen.textContent='\u0631\u0645\u0632 \u062a\u0644\u0642\u0627\u0626\u064a';gen.style.cssText='background:var(--blue-bg);border:1px solid var(--blue);color:var(--blue);border-radius:4px;cursor:pointer;padding:4px 8px;font-size:11px;font-family:inherit;white-space:nowrap';
+  gen.onclick=function(){ci.value=Math.random().toString(36).slice(2,8).toUpperCase();};
+  var del=document.createElement('button');del.textContent='\u062d\u0630\u0641';del.style.cssText='background:var(--red-bg);border:1px solid #d96060;color:var(--red-text);border-radius:4px;cursor:pointer;padding:4px 8px;font-size:11px;font-family:inherit';
+  del.onclick=function(){row.remove();};
+  row.appendChild(ni);row.appendChild(ci);row.appendChild(gen);row.appendChild(del);
+  list.appendChild(row);
+  if(!name)ni.focus();
+}
+async function saveRoomCodes(){
+  var tc=document.getElementById('inp-teacher-code').value.trim().toUpperCase();
+  var tac=document.getElementById('inp-ta-code').value.trim().toUpperCase();
+  if(!tc||!tac){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0631\u0645\u0632\u064a \u0627\u0644\u0645\u062f\u0631\u0633 \u0648\u0627\u0644\u0645\u0633\u0627\u0639\u062f');return;}
+  var sc={};
+  var rows=document.querySelectorAll('#student-codes-list .er');
+  rows.forEach(function(row){
+    var ins=row.querySelectorAll('input');
+    var n=ins[0]&&ins[0].value.trim();var c=ins[1]&&ins[1].value.trim().toUpperCase();
+    if(n&&c)sc[n]=c;
+  });
+  var newCodes={teacherCode:tc,taCode:tac,studentCodes:sc};
+  await db.collection('config').doc('room').set(newCodes);
+  roomCodes=newCodes;
+  closeOv('ov-codes');
+  toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0631\u0645\u0648\u0632');
+}
+// Show manage button when teacher is in room
+function _showCodesBtn(){
+  if(myRole==='teacher'||myRole==='ta') document.getElementById('btn-manage-codes').style.display='';
 }
 
 // Mic toggle
@@ -1159,6 +1531,7 @@ var _now=new Date();
 document.getElementById('h-date').textContent=_now.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 document.getElementById('att-date').textContent='\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0637\u0644\u0627\u0628 \u2014 '+_now.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
 renderCS(DC); renderCAT(DC); renderStudents(); listenConfig(); loadHistory();
+loadRoomCodes();
 </script>
 </body>
 </html>
