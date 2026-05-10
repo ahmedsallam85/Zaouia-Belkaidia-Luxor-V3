@@ -208,43 +208,45 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="panel active" id="panel-record">
 
     <!-- LOBBY -->
-    <!-- ══ AUTH / LOBBY ══ -->
+    <!-- ══ AUTH / LOBBY — 4-step flow ══ -->
     <div id="room-lobby" class="card">
 
-      <!-- Step 1: Role selection -->
+      <!-- STEP 1: Enter code -->
       <div id="auth-step1" class="auth-wrap">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px">🏫</div>
         <div style="font-size:16px;font-weight:700;margin-bottom:6px">غرفة التدريب المباشر</div>
-        <div style="font-size:12px;color:var(--text2);margin-bottom:16px">اختر صلاحيتك للدخول</div>
-        <div class="auth-role-btns">
-          <div class="role-btn" id="role-btn-teacher" onclick="selectRole('teacher')">
-            <div class="role-icon">👨‍🏫</div>
-            <div class="role-name">مدرس</div>
-            <div class="role-hint">أو مساعد مدرس</div>
-          </div>
-          <div class="role-btn" id="role-btn-student" onclick="selectRole('student')">
-            <div class="role-icon">👨‍🎓</div>
-            <div class="role-name">طالب</div>
-            <div class="role-hint">يحتاج موافقة</div>
-          </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.7">
+          أدخل رمز الدخول الخاص بك<br/>
+          <span style="font-size:11px;color:var(--text3)">المدرس: 01 · مساعد المدرس: 02 · الطالب: رمزه الخاص</span>
         </div>
-        <button class="btn btn-primary" onclick="goStep2()" style="font-size:14px;padding:9px 24px">التالي ←</button>
+        <input type="password" id="inp-code" placeholder="رمز الدخول"
+          style="max-width:220px;text-align:center;margin:0 auto 14px;display:block;direction:ltr;letter-spacing:4px;font-size:18px;font-weight:700"
+          onkeydown="if(event.key==='Enter')verifyCodeStep()"/>
+        <div id="code-error-msg" style="display:none;font-size:12px;color:var(--red-text);margin-bottom:10px"></div>
+        <button class="btn btn-primary" onclick="verifyCodeStep()" style="font-size:14px;padding:10px 28px">
+          تحقق من الرمز ←
+        </button>
       </div>
 
-      <!-- Step 2: Name + Code + Camera -->
+      <!-- STEP 2: Choose course/room -->
       <div id="auth-step2" style="display:none" class="auth-wrap">
-        <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:14px;font-size:14px;font-weight:700">
-          <span id="step2-role-icon"></span><span id="step2-role-label"></span>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">اختر المادة / الغرفة</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:14px">
+          ستدخل غرفة التدريب الخاصة بهذه المادة
         </div>
+        <div id="course-room-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;margin-bottom:14px;text-align:right"></div>
+        <button class="btn btn-sm" onclick="goAuthStep(1)">← رجوع</button>
+      </div>
+
+      <!-- STEP 3: Name + Camera -->
+      <div id="auth-step3" style="display:none" class="auth-wrap">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px" id="step3-badge"></div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="step3-room-name"></div>
 
         <input type="text" id="room-name" placeholder="أدخل اسمك..."
-          style="max-width:260px;text-align:center;margin:0 auto 8px;display:block;font-size:14px"
-          onkeydown="if(event.key==='Enter')document.getElementById('inp-code').focus()"/>
-
-        <input type="text" id="inp-code" placeholder="رمز الدخول..."
-          style="max-width:260px;text-align:center;margin:0 auto 10px;display:block;direction:ltr;letter-spacing:3px;font-size:15px;font-weight:700"
+          style="max-width:260px;text-align:center;margin:0 auto 10px;display:block;font-size:14px"
           onkeydown="if(event.key==='Enter')joinRoom()"/>
 
-        <!-- Camera -->
         <div style="max-width:320px;margin:0 auto 10px">
           <div class="cam-sel-row">
             <label>📷 الكاميرا:</label>
@@ -255,19 +257,19 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
             <button class="face-btn" id="fb-back" onclick="setLobbyFace('back')">📸 خلفية</button>
           </div>
         </div>
-
         <div id="room-perm-msg" style="display:none;max-width:280px;margin:0 auto 8px;padding:6px 12px;border-radius:6px;font-size:12px;text-align:center"></div>
         <div style="display:flex;gap:8px;justify-content:center">
-          <button class="btn btn-sm" onclick="goStep1()">← رجوع</button>
+          <button class="btn btn-sm" onclick="goAuthStep(2)">← رجوع</button>
           <button class="btn btn-primary" id="btn-join" onclick="joinRoom()" style="font-size:14px;padding:9px 22px">دخول الغرفة</button>
         </div>
       </div>
 
-      <!-- Step 3: Waiting for approval (students only) -->
-      <div id="auth-step3" style="display:none" class="auth-wrap">
+      <!-- STEP 4: Waiting for teacher approval (students only) -->
+      <div id="auth-step4" style="display:none" class="auth-wrap">
         <div class="wait-room">
           <div class="wait-spin"></div>
-          <div style="font-size:15px;font-weight:700;margin-bottom:8px">في انتظار الموافقة</div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:6px">في انتظار الموافقة</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">المادة: <strong id="wait-room-name"></strong></div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:14px">المدرس سيقبل طلبك قريباً...</div>
           <button class="btn btn-danger btn-sm" onclick="cancelWaiting()">إلغاء</button>
         </div>
@@ -423,38 +425,38 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </div>
 
 <!-- MODALS -->
-<div class="ov" id="ov-students" onclick="closeOv('ov-students')"><div class="modal" onclick="event.stopPropagation()"><div class="mh"><button class="btn btn-primary btn-sm" onclick="saveStudents()">حفظ ومشاركة ✓</button><div class="mt">✏️ طلاب: <span id="modal-course-name"></span></div></div><div style="font-size:11px;color:var(--text2);margin-bottom:8px">تنعكس على الجميع فوراً</div><div id="students-list"></div><div class="div"></div><div style="display:flex;justify-content:space-between;align-items:center"><button class="btn btn-green btn-sm" onclick="addStudentRow()">+ إضافة طالب</button><button class="btn btn-sm" onclick="closeOv('ov-students')">إلغاء</button></div></div></div>
+<div class="ov" id="ov-students" onclick="closeOv('ov-students')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:560px">
+    <div class="mh">
+      <button class="btn btn-primary btn-sm" onclick="saveStudents()">حفظ ✓</button>
+      <div class="mt">👨‍🎓 طلاب: <span id="modal-course-name"></span></div>
+    </div>
+    <div style="font-size:11px;color:var(--blue);background:var(--blue-bg);padding:7px 10px;border-radius:6px;margin-bottom:10px">
+      🔑 الرمز يُولَّد تلقائياً لكل طالب — الرموز مرئية للأدمن فقط<br/>
+      الطالب المسجل في أكثر من مادة يستخدم نفس الرمز
+    </div>
+    <!-- Admin PIN to reveal codes -->
+    <div id="admin-reveal-wrap" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+      <button class="btn btn-amber btn-sm" onclick="revealCodes()" id="btn-reveal">🔓 عرض الرموز (أدمن)</button>
+      <input type="password" id="admin-pin-inp" placeholder="رمز الأدمن (01 أو 02)" style="max-width:160px;direction:ltr;letter-spacing:2px" onkeydown="if(event.key==='Enter')revealCodes()"/>
+    </div>
+    <div id="students-list" style="max-height:340px;overflow-y:auto"></div>
+    <div class="div"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-green btn-sm" onclick="addStudentRow()">+ إضافة طالب</button>
+        <button class="btn btn-sm" id="btn-copy-all" onclick="copyAllCodes()" style="display:none">📋 نسخ كل الرموز</button>
+      </div>
+      <button class="btn btn-sm" onclick="closeOv('ov-students')">إغلاق</button>
+    </div>
+  </div>
+</div>
 <div class="ov" id="ov-courses" onclick="closeOv('ov-courses')"><div class="modal" style="max-width:420px" onclick="event.stopPropagation()"><div class="mh"><button class="btn btn-primary btn-sm" onclick="saveCourses()">حفظ ومشاركة ✓</button><div class="mt">📚 تعديل المواد</div></div><div style="font-size:11px;color:var(--text2);margin-bottom:8px">كل مادة لها قائمة طلاب مستقلة</div><div id="courses-list"></div><div class="div"></div><div style="display:flex;justify-content:space-between;align-items:center"><button class="btn btn-green btn-sm" onclick="addCourseRow()">+ إضافة مادة</button><button class="btn btn-sm" onclick="closeOv('ov-courses')">إلغاء</button></div></div></div>
 <div class="ov" id="ov-rename" onclick="closeOv('ov-rename')"><div class="modal" style="max-width:380px" onclick="event.stopPropagation()"><div class="mh"><div class="mt">✏️ إعادة تسمية</div></div><div class="form-group"><label class="form-label">الاسم الجديد</label><input type="text" id="rename-inp" onkeydown="if(event.key==='Enter')confirmRename()"/></div><div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="confirmRename()">حفظ</button><button class="btn btn-sm" onclick="closeOv('ov-rename')">إلغاء</button></div></div></div>
 <div class="ov" id="ov-vid" onclick="closeOv('ov-vid')"><div class="modal" style="max-width:680px" onclick="event.stopPropagation()"><div class="mh"><button class="btn btn-sm" onclick="closeVid()">✕ إغلاق</button><div class="mt" id="vid-mt"></div></div><video id="pb-video" controls playsinline webkit-playsinline></video><div style="margin-top:5px;font-size:11px;color:var(--text2);text-align:right" id="vid-mm"></div></div></div>
 <div class="toast" id="toast"></div>
 
-<!-- Room Codes Modal -->
-<div class="ov" id="ov-codes" onclick="closeOv('ov-codes')">
-  <div class="modal" style="max-width:480px" onclick="event.stopPropagation()">
-    <div class="mh">
-      <button class="btn btn-primary btn-sm" onclick="saveRoomCodes()">حفظ الرموز ✓</button>
-      <div class="mt">🔑 إدارة رموز الدخول</div>
-    </div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:12px">الرموز مشتركة مع جميع المدرسين — لا تشاركها مع الطلاب</div>
 
-    <div class="form-group">
-      <label class="form-label">🎓 رمز المدرس (Teacher Code)</label>
-      <input type="text" id="inp-teacher-code" placeholder="مثال: TEACH2024" style="direction:ltr;letter-spacing:2px;font-weight:700"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">📋 رمز مساعد المدرس (TA Code)</label>
-      <input type="text" id="inp-ta-code" placeholder="مثال: TA456" style="direction:ltr;letter-spacing:2px;font-weight:700"/>
-    </div>
-
-    <div class="div"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <button class="btn btn-green btn-sm" onclick="addStudentCodeRow()">+ إضافة طالب</button>
-      <span style="font-size:12px;font-weight:600">رموز الطلاب (لكل طالب رمز فريد)</span>
-    </div>
-    <div id="student-codes-list" style="max-height:240px;overflow-y:auto"></div>
-  </div>
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -603,6 +605,7 @@ function listenConfig(){
     if(d.logo)showLogo(d.logo);else hideLogo();
     if(d.courses&&d.courses.length){courses=d.courses;renderCS(courses);renderCAT(courses);}
     if(d.courseStudents)courseStudents=d.courseStudents;
+    if(d.studentCodes)studentCodesMap=Object.assign({},d.studentCodes);
     renderStudents();
   },function(){});
 }
@@ -680,14 +683,24 @@ async function getMedia(deviceId, facing, wantAudio){
 // MUTE CONTROL: teacher/TA can mute individual students
 //   via Firestore cmd/{pid} → {action:'mute'/'unmute'}
 // ════════════════════════════════════════════
-var ROOM='luxor-v6';
-var myId=null, myName='', myRole='', roomStream=null;
-var peers={};   // pid → {pc, name, role, rRef, iceBuf:[]}
+var ROOM_BASE='luxor-room';  // base name; actual room = ROOM_BASE+'-'+courseName
+var myId=null, myName='', myRole='', myRoom='', roomStream=null;
+var peers={};
 var unsubs=[];
 var rMicOff=false, rCamOff=false, rFacing='user', rDeviceId='';
-var selectedRole='';   // 'teacher' | 'ta' | 'student'
-var pendingId=null;    // set while student is waiting for approval
-var roomCodes={teacherCode:'', taCode:'', studentCodes:{}};
+var selectedRole='';   // 'teacher'|'ta'|'student'
+var selectedCourse=''; // course name chosen in step 2
+var pendingId=null;
+var codesVisible=false; // whether admin has revealed codes in modal
+
+// FIXED ADMIN CODES
+var TEACHER_CODE='01';
+var TA_CODE='02';
+
+// studentCodes lives in Firestore config/app.studentCodes
+// structure: { "studentName": "XYZ123", ... }
+// If student is in multiple courses they use the same code
+// courseStudents already has per-course student lists
 
 var ICE={
   iceServers:[
@@ -705,82 +718,113 @@ var ICE={
 
 function _uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 
-// ── AUTH: Role Selection UI ──────────────────────────────────
-function selectRole(role){
-  selectedRole=role;
-  document.getElementById('role-btn-teacher').className='role-btn'+(role==='teacher'?' selected':'');
-  document.getElementById('role-btn-student').className='role-btn'+(role==='student'?' selected':'');
-}
-function goStep2(){
-  if(!selectedRole){toast('\u26a0\ufe0f \u0627\u062e\u062a\u0631 \u0635\u0644\u0627\u062d\u064a\u062a\u0643 \u0623\u0648\u0644\u0627\u064b');return;}
-  document.getElementById('auth-step1').style.display='none';
-  document.getElementById('auth-step2').style.display='';
-  var icon=selectedRole==='teacher'?'\uD83D\uDC68\u200D\uD83C\uDFEB':'\uD83D\uDC68\u200D\uD83C\uDF93';
-  var lbl=selectedRole==='teacher'?'\u0645\u062f\u0631\u0633 \u0623\u0648 \u0645\u0633\u0627\u0639\u062f \u0645\u062f\u0631\u0633':'\u0637\u0627\u0644\u0628';
-  document.getElementById('step2-role-icon').textContent=icon;
-  document.getElementById('step2-role-label').textContent=lbl;
-  document.getElementById('room-name').focus();
-}
-function goStep1(){
-  document.getElementById('auth-step2').style.display='none';
-  document.getElementById('auth-step1').style.display='';
+// ── STUDENT CODE HELPERS ─────────────────────────────────────
+// studentCodes is stored in config/app as a flat map {name:code}
+// All courses share the same code map — same student, same code
+var studentCodesMap={};  // {name: code} loaded from Firestore
+
+function _genCode(){
+  // 6-char alphanumeric, uppercase, easy to type
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var c='';for(var i=0;i<6;i++)c+=chars[Math.floor(Math.random()*chars.length)];
+  return c;
 }
 
-// Load room codes from Firestore once
-async function loadRoomCodes(){
+function getOrCreateCode(name){
+  var n=name.trim();
+  if(!n)return '';
+  if(!studentCodesMap[n]) studentCodesMap[n]=_genCode();
+  return studentCodesMap[n];
+}
+
+// ── AUTH FLOW ────────────────────────────────────────────────
+function goAuthStep(n){
+  [1,2,3,4].forEach(function(i){
+    document.getElementById('auth-step'+i).style.display=(i===n?'':'none');
+  });
+  if(n===1) document.getElementById('inp-code').focus();
+}
+
+// Step 1 → verify code, determine role, go to step 2 (course select)
+async function verifyCodeStep(){
+  var code=document.getElementById('inp-code').value.trim();
+  if(!code){_codeErr('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0631\u0645\u0632 \u0627\u0644\u062f\u062e\u0648\u0644');return;}
+
+  var errEl=document.getElementById('code-error-msg');errEl.style.display='none';
+
+  if(code===TEACHER_CODE){ selectedRole='teacher'; _buildCourseList(); goAuthStep(2); return; }
+  if(code===TA_CODE){       selectedRole='ta';      _buildCourseList(); goAuthStep(2); return; }
+
+  // Student: check against studentCodesMap
+  // Load latest codes from Firestore
+  var smCodes=studentCodesMap;
+  // Also check freshly
   try{
-    var doc=await db.collection('config').doc('room').get();
-    if(doc.exists){
-      roomCodes=Object.assign({teacherCode:'TEACHER123',taCode:'TA456',studentCodes:{}},doc.data());
-    }else{
-      // First time: set default codes
-      roomCodes={teacherCode:'TEACHER123',taCode:'TA456',studentCodes:{}};
-      await db.collection('config').doc('room').set(roomCodes);
-    }
-  }catch(e){roomCodes={teacherCode:'TEACHER123',taCode:'TA456',studentCodes:{}};}
+    var doc=await db.collection('config').doc('app').get();
+    if(doc.exists&&doc.data().studentCodes) smCodes=doc.data().studentCodes;
+  }catch(e){}
+
+  var match=Object.keys(smCodes).find(function(name){
+    return (smCodes[name]||'').toUpperCase()===code.toUpperCase();
+  });
+
+  if(match){
+    selectedRole='student';
+    // Pre-fill name
+    document.getElementById('room-name').value=match;
+    // Find which courses this student is enrolled in
+    var myCourses=courses.filter(function(c){
+      return (courseStudents[c]||[]).some(function(s){return s.name===match;});
+    });
+    _buildCourseList(myCourses);
+    goAuthStep(2);
+  }else{
+    _codeErr('\u274c \u0631\u0645\u0632 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d \u2014 \u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0645\u062f\u0631\u0633\u0643');
+  }
 }
 
-// Verify entered code and return actual role or null
-function verifyCode(code,name){
-  code=code.trim().toUpperCase();
-  var tc=(roomCodes.teacherCode||'TEACHER123').toUpperCase();
-  var tac=(roomCodes.taCode||'TA456').toUpperCase();
-  if(code===tc) return 'teacher';
-  if(code===tac) return 'ta';
-  // Check student codes: each student has a unique code in studentCodes
-  var sc=roomCodes.studentCodes||{};
-  if(Object.values(sc).some(function(v){return v.toUpperCase()===code;})) return 'student';
-  // Also allow any code matching a student code keyed by name
-  if(sc[name]&&sc[name].toUpperCase()===code) return 'student';
-  return null;
+function _codeErr(msg){
+  var el=document.getElementById('code-error-msg');el.textContent=msg;el.style.display='block';
 }
 
+// Build course selection buttons for step 2
+function _buildCourseList(filteredCourses){
+  var list=filteredCourses||(courses.length?courses:DC);
+  var wrap=document.getElementById('course-room-list');wrap.innerHTML='';
+  if(!list.length){wrap.innerHTML='<div class="empty">\u0644\u0627 \u062a\u0648\u062c\u062f \u063a\u0631\u0641</div>';return;}
+  list.forEach(function(c){
+    var btn=document.createElement('button');
+    btn.style.cssText='width:100%;padding:12px 16px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);font-family:inherit;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;text-align:right;display:flex;align-items:center;gap:8px;transition:all .15s;-webkit-tap-highlight-color:transparent';
+    btn.innerHTML='<span style="font-size:18px">\uD83D\uDCD6</span><span style="flex:1">'+esc(c)+'</span><span style="font-size:11px;color:var(--blue);font-weight:700">\u062f\u062e\u0648\u0644 \u2192</span>';
+    btn.onmouseover=function(){this.style.borderColor='var(--blue)';this.style.background='var(--blue-bg)';};
+    btn.onmouseout=function(){this.style.borderColor='var(--border2)';this.style.background='var(--surface)';};
+    btn.onclick=function(){
+      selectedCourse=c;
+      document.getElementById('step3-badge').innerHTML=
+        '<span style="background:'+(selectedRole==='teacher'?'var(--blue)':selectedRole==='ta'?'var(--amber)':'var(--green)')+';color:#fff;padding:2px 10px;border-radius:4px;font-size:12px">'
+        +_roleLabel(selectedRole)+'</span>';
+      document.getElementById('step3-room-name').textContent='\u063a\u0631\u0641\u0629: '+c;
+      goAuthStep(3);
+      setTimeout(function(){document.getElementById('room-name').focus();},80);
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+// ── ACTUAL JOIN ──────────────────────────────────────────────
 async function joinRoom(){
   var name=document.getElementById('room-name').value.trim();
-  var code=document.getElementById('inp-code').value.trim();
   if(!name){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643');return;}
-  if(!code){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0631\u0645\u0632 \u0627\u0644\u062f\u062e\u0648\u0644');return;}
+  if(!selectedCourse){toast('\u26a0\ufe0f \u0644\u0645 \u062a\u062e\u062a\u0631 \u063a\u0631\u0641\u0629');return;}
 
   var btn=document.getElementById('btn-join');
   btn.disabled=true;
   btn.innerHTML='<span class="spin"></span> \u062c\u0627\u0631\u064d...';
 
-  await loadRoomCodes();
-  var verifiedRole=verifyCode(code,name);
-  if(!verifiedRole){
-    btn.disabled=false; btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
-    toast('\u274c \u0631\u0645\u0632 \u0627\u0644\u062f\u062e\u0648\u0644 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d');return;
-  }
-  // If user chose teacher role but code is student code (or vice versa)
-  if(selectedRole==='teacher' && verifiedRole==='student'){
-    btn.disabled=false; btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
-    toast('\u274c \u0647\u0630\u0627 \u0627\u0644\u0631\u0645\u0632 \u0644\u0644\u0637\u0644\u0627\u0628 \u0641\u0642\u0637');return;
-  }
-
   var selCamId=document.getElementById('sel-cam').value;
   roomStream=await getMedia(selCamId||'', lobbyFacing, true);
   if(!roomStream){
-    btn.disabled=false; btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
+    btn.disabled=false;btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
     toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u062c\u0647\u0627\u0632');return;
   }
 
@@ -789,130 +833,103 @@ async function joinRoom(){
   if(!hasVid&&!hasMic) _permMsg('\u26a0\ufe0f \u0628\u062f\u0648\u0646 \u0635\u0648\u062a \u0648\u0644\u0627 \u0635\u0648\u0631\u0629','red');
   else if(!hasVid)     _permMsg('\u2139\ufe0f \u0635\u0648\u062a \u0641\u0642\u0637','amber');
 
-  myId=_uid(); myName=name; myRole=verifiedRole;
+  myId=_uid(); myName=name; myRoom=ROOM_BASE+'-'+selectedCourse.replace(/\s+/g,'-');
   rFacing=lobbyFacing; rDeviceId=selCamId;
 
-  // Students go to pending first; teacher/TA join directly
-  if(verifiedRole==='student'){
-    await _enterPending(name, myId);
+  if(selectedRole==='student'){
+    await _enterPending(name, myId, myRoom, selectedCourse);
   } else {
-    await _enterRoom(name, myId, verifiedRole);
+    await _enterRoom(name, myId, selectedRole, myRoom, selectedCourse);
   }
 }
 
-// Student writes to pending collection and waits
-async function _enterPending(name, id){
+// Student → pending collection, show step 4
+async function _enterPending(name, id, room, courseName){
   pendingId=id;
-  var rRef=db.collection('rooms').doc(ROOM);
+  var rRef=db.collection('rooms').doc(room);
   await rRef.collection('pending').doc(id).set({
     name:name, id:id, at:firebase.firestore.FieldValue.serverTimestamp(), status:'waiting'
   });
-  // Switch to waiting UI
-  document.getElementById('auth-step2').style.display='none';
-  document.getElementById('auth-step3').style.display='';
+  document.getElementById('wait-room-name').textContent=courseName;
+  goAuthStep(4);
 
-  // Watch for approval/rejection
   var unsub=rRef.collection('pending').doc(id).onSnapshot(function(doc){
-    if(!doc.exists) return;
+    if(!doc.exists)return;
     var d=doc.data();
     if(d.status==='approved'){
-      unsub();
-      doc.ref.delete().catch(function(){});
-      document.getElementById('auth-step3').style.display='none';
-      _enterRoom(myName, myId, 'student');
+      unsub();doc.ref.delete().catch(function(){});
+      goAuthStep(1); // reset visible
+      _enterRoom(myName, myId, 'student', myRoom, selectedCourse);
     } else if(d.status==='rejected'){
-      unsub();
-      doc.ref.delete().catch(function(){});
-      pendingId=null;
-      document.getElementById('auth-step3').style.display='none';
-      document.getElementById('auth-step2').style.display='';
+      unsub();doc.ref.delete().catch(function(){});pendingId=null;
+      goAuthStep(1);
+      document.getElementById('inp-code').value='';
       toast('\u274c \u062a\u0645 \u0631\u0641\u0636 \u0637\u0644\u0628\u0643. \u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0627\u0644\u0645\u062f\u0631\u0633.');
-      var btn=document.getElementById('btn-join');btn.disabled=false;btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
     }
   });
 }
 
 async function cancelWaiting(){
   if(pendingId){
-    await db.collection('rooms').doc(ROOM).collection('pending').doc(pendingId).delete().catch(function(){});
+    await db.collection('rooms').doc(myRoom).collection('pending').doc(pendingId).delete().catch(function(){});
     pendingId=null;
   }
   if(roomStream){roomStream.getTracks().forEach(function(t){t.stop();});roomStream=null;}
-  document.getElementById('auth-step3').style.display='none';
-  document.getElementById('auth-step2').style.display='';
-  var btn=document.getElementById('btn-join');btn.disabled=false;btn.textContent='\u062f\u062e\u0648\u0644 \u0627\u0644\u063a\u0631\u0641\u0629';
+  goAuthStep(1);
+  document.getElementById('inp-code').value='';
 }
 
-// ── ACTUAL ROOM JOIN ─────────────────────────────────────────
-async function _enterRoom(name, id, role){
-  // Local preview
+// ── ENTER ROOM ───────────────────────────────────────────────
+async function _enterRoom(name, id, role, roomId, courseName){
   var mv=document.getElementById('my-video');
-  mobileVideo(mv,true);
-  mv.srcObject=roomStream;
-  safePlay(mv);
+  mobileVideo(mv,true); mv.srcObject=roomStream; safePlay(mv);
   document.getElementById('my-name-lbl').textContent=name+' (\u0623\u0646\u062a)';
   if(!roomStream||!roomStream.getVideoTracks().length)
     document.getElementById('my-voff').className='voff on';
+  _setTileRoleBadge('my-tile',role);
 
-  // Show role badge on my tile
-  _setTileRoleBadge('my-tile', role);
-
-  // Show/hide teacher controls
   var isAuth=(role==='teacher'||role==='ta');
   document.getElementById('btn-mute-all').style.display=isAuth?'':'none';
 
   document.getElementById('room-lobby').style.display='none';
   document.getElementById('room-active').style.display='block';
-  document.getElementById('room-title-lbl').textContent=
-    document.getElementById('ses-title').value.trim()||'\u063a\u0631\u0641\u0629 \u0627\u0644\u062a\u062f\u0631\u064a\u0628';
+  document.getElementById('room-title-lbl').textContent=courseName;
   var rsel=document.getElementById('room-cam-sel');
-  if(rsel) rsel.value=rDeviceId||'';
-  _syncRoomControls();
-  _updateGrid();
+  if(rsel)rsel.value=rDeviceId||'';
+  _syncRoomControls();_updateGrid();
 
-  var rRef=db.collection('rooms').doc(ROOM);
-  await rRef.set({active:true},{merge:true});
-  await rRef.collection('peers').doc(id).set({name:name, role:role, at:firebase.firestore.FieldValue.serverTimestamp()});
+  var rRef=db.collection('rooms').doc(roomId);
+  await rRef.set({active:true,course:courseName},{merge:true});
+  await rRef.collection('peers').doc(id).set({name:name,role:role,at:firebase.firestore.FieldValue.serverTimestamp()});
 
-  // Teacher/TA: watch pending students
   if(isAuth) _watchPending(rRef);
 
-  // Watch for mute commands directed at me
+  // Listen for mute commands
   var uCmd=rRef.collection('cmd').doc(id).onSnapshot(function(doc){
     if(!doc.exists)return;
     var d=doc.data();
+    var at=roomStream&&roomStream.getAudioTracks()[0];
     if(d.action==='mute'&&!rMicOff){
-      rMicOff=true;
-      var at=roomStream&&roomStream.getAudioTracks()[0];
-      if(at)at.enabled=false;
-      _syncRoomControls();
+      rMicOff=true;if(at)at.enabled=false;_syncRoomControls();
       toast('\uD83D\uDD07 \u0642\u0627\u0645 \u0627\u0644\u0645\u062f\u0631\u0633 \u0628\u0643\u062a\u0645 \u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646\u0643');
     } else if(d.action==='unmute'&&rMicOff){
-      rMicOff=false;
-      var at=roomStream&&roomStream.getAudioTracks()[0];
-      if(at)at.enabled=true;
-      _syncRoomControls();
+      rMicOff=false;if(at)at.enabled=true;_syncRoomControls();
       toast('\uD83C\uDF99\uFE0F \u0642\u0627\u0645 \u0627\u0644\u0645\u062f\u0631\u0633 \u0628\u062a\u0634\u063a\u064a\u0644 \u0645\u064a\u0643\u0631\u0648\u0641\u0648\u0646\u0643');
     }
-    // Acknowledge (delete the command)
     doc.ref.delete().catch(function(){});
   });
-  unsubs.push(uCmd);
 
-  // Signal listeners
+  // Signals
   var u2=rRef.collection('sig').where('to','==',id).where('t','==','offer')
     .onSnapshot(function(snap){
       snap.docChanges().forEach(async function(ch){
         if(ch.type!=='added')return;
-        var d=ch.doc.data();
-        ch.doc.ref.delete().catch(function(){});
-        if(!peers[d.fr]) _makePc(d.fr, d.fn||d.fr, d.role||'student', rRef);
-        var entry=peers[d.fr]; if(!entry)return;
+        var d=ch.doc.data();ch.doc.ref.delete().catch(function(){});
+        if(!peers[d.fr])_makePc(d.fr,d.fn||d.fr,d.role||'student',rRef);
+        var entry=peers[d.fr];if(!entry)return;
         try{
           await entry.pc.setRemoteDescription({type:'offer',sdp:d.sdp});
-          while(entry.iceBuf.length){
-            await entry.pc.addIceCandidate(new RTCIceCandidate(entry.iceBuf.shift())).catch(function(){});
-          }
+          while(entry.iceBuf.length)await entry.pc.addIceCandidate(new RTCIceCandidate(entry.iceBuf.shift())).catch(function(){});
           var ans=await entry.pc.createAnswer();
           await entry.pc.setLocalDescription(ans);
           await rRef.collection('sig').add({t:'answer',fr:id,to:d.fr,sdp:ans.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
@@ -924,15 +941,12 @@ async function _enterRoom(name, id, role){
     .onSnapshot(function(snap){
       snap.docChanges().forEach(async function(ch){
         if(ch.type!=='added')return;
-        var d=ch.doc.data();
-        ch.doc.ref.delete().catch(function(){});
-        var entry=peers[d.fr]; if(!entry)return;
+        var d=ch.doc.data();ch.doc.ref.delete().catch(function(){});
+        var entry=peers[d.fr];if(!entry)return;
         if(entry.pc.signalingState==='have-local-offer'){
           try{
             await entry.pc.setRemoteDescription({type:'answer',sdp:d.sdp});
-            while(entry.iceBuf.length){
-              await entry.pc.addIceCandidate(new RTCIceCandidate(entry.iceBuf.shift())).catch(function(){});
-            }
+            while(entry.iceBuf.length)await entry.pc.addIceCandidate(new RTCIceCandidate(entry.iceBuf.shift())).catch(function(){});
           }catch(e){console.warn('handleAnswer',e);}
         }
       });
@@ -942,10 +956,9 @@ async function _enterRoom(name, id, role){
     .onSnapshot(function(snap){
       snap.docChanges().forEach(async function(ch){
         if(ch.type!=='added')return;
-        var d=ch.doc.data();
-        ch.doc.ref.delete().catch(function(){});
-        var entry=peers[d.fr]; if(!entry||!d.c)return;
-        if(entry.pc.remoteDescription) entry.pc.addIceCandidate(new RTCIceCandidate(d.c)).catch(function(){});
+        var d=ch.doc.data();ch.doc.ref.delete().catch(function(){});
+        var entry=peers[d.fr];if(!entry||!d.c)return;
+        if(entry.pc.remoteDescription)entry.pc.addIceCandidate(new RTCIceCandidate(d.c)).catch(function(){});
         else entry.iceBuf.push(d.c);
       });
     });
@@ -953,24 +966,23 @@ async function _enterRoom(name, id, role){
   var u1=rRef.collection('peers').onSnapshot(function(snap){
     snap.docChanges().forEach(function(ch){
       if(ch.type==='added'&&ch.doc.id!==id){
-        var pid=ch.doc.id, pd=ch.doc.data();
-        var pname=pd.name||'\u0645\u0634\u0627\u0631\u0643', prole=pd.role||'student';
+        var pid=ch.doc.id,pd=ch.doc.data();
         if(!peers[pid]){
-          _makePc(pid, pname, prole, rRef);
-          if(id>pid) _doOffer(pid, rRef);
+          _makePc(pid,pd.name||'\u0645\u0634\u0627\u0631\u0643',pd.role||'student',rRef);
+          if(id>pid)_doOffer(pid,rRef);
         }
       }
-      if(ch.type==='removed') _drop(ch.doc.id);
+      if(ch.type==='removed')_drop(ch.doc.id);
     });
     document.getElementById('room-count').textContent='\u{1F465} '+snap.size;
   });
 
   unsubs=[u1,u2,u3,u4,uCmd];
   _showCodesBtn();
-  toast('\u2705 \u062f\u062e\u0644\u062a \u0627\u0644\u063a\u0631\u0641\u0629 \u0643\u2009'+_roleLabel(role));
+  toast('\u2705 \u062f\u062e\u0644\u062a \u063a\u0631\u0641\u0629 '+courseName+' \u0643\u2009'+_roleLabel(role));
 }
 
-// ── PENDING APPROVAL WATCHER (teacher/TA only) ───────────────
+// ── PENDING ──────────────────────────────────────────────────
 function _watchPending(rRef){
   var u=rRef.collection('pending').where('status','==','waiting')
     .onSnapshot(function(snap){
@@ -981,8 +993,7 @@ function _watchPending(rRef){
       list.innerHTML='';
       snap.forEach(function(doc){
         var d=doc.data();
-        var row=document.createElement('div');
-        row.className='approval-row';
+        var row=document.createElement('div');row.className='approval-row';
         row.innerHTML='<span class="approval-name">\uD83D\uDC68\u200D\uD83C\uDF93 '+esc(d.name)+'</span>'
           +'<div style="display:flex;gap:5px">'
           +'<button class="btn btn-green btn-sm" onclick="approveStudent(\''+d.id+'\')">\u2714 \u0642\u0628\u0648\u0644</button>'
@@ -993,91 +1004,67 @@ function _watchPending(rRef){
     });
   unsubs.push(u);
 }
-
 async function approveStudent(sid){
-  await db.collection('rooms').doc(ROOM).collection('pending').doc(sid).update({status:'approved'});
+  await db.collection('rooms').doc(myRoom).collection('pending').doc(sid).update({status:'approved'});
   toast('\u2705 \u062a\u0645 \u0642\u0628\u0648\u0644 \u0627\u0644\u0637\u0627\u0644\u0628');
 }
 async function rejectStudent(sid){
-  await db.collection('rooms').doc(ROOM).collection('pending').doc(sid).update({status:'rejected'});
-  toast('\u0644\u0642\u062f \u062a\u0645 \u0631\u0641\u0636 \u0637\u0644\u0628 \u0627\u0644\u062f\u062e\u0648\u0644');
+  await db.collection('rooms').doc(myRoom).collection('pending').doc(sid).update({status:'rejected'});
+  toast('\u062a\u0645 \u0631\u0641\u0636 \u0637\u0644\u0628 \u0627\u0644\u062f\u062e\u0648\u0644');
 }
 
-// ── MUTE CONTROL ─────────────────────────────────────────────
-// Teacher/TA sends a mute command to a specific peer via Firestore
+// ── MUTE ─────────────────────────────────────────────────────
 function muteAll(){
-  var rRef=db.collection('rooms').doc(ROOM);
+  var rRef=db.collection('rooms').doc(myRoom);
   Object.keys(peers).forEach(function(pid){
-    var e=peers[pid]; if(!e||e.role==='teacher'||e.role==='ta')return;
+    var e=peers[pid];if(!e||e.role==='teacher'||e.role==='ta')return;
     rRef.collection('cmd').doc(pid).set({action:'mute',by:myId,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
-    // Update mute badge on tile
-    var mb=document.getElementById('mb-'+pid); if(mb)mb.className='mute-badge on';
+    var mb=document.getElementById('mb-'+pid);if(mb)mb.className='mute-badge on';
   });
   toast('\uD83D\uDD07 \u062a\u0645 \u0643\u062a\u0645 \u062c\u0645\u064a\u0639 \u0627\u0644\u0637\u0644\u0627\u0628');
 }
 function mutePeer(pid){
-  var rRef=db.collection('rooms').doc(ROOM);
-  rRef.collection('cmd').doc(pid).set({action:'mute',by:myId,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
-  var mb=document.getElementById('mb-'+pid); if(mb)mb.className='mute-badge on';
+  db.collection('rooms').doc(myRoom).collection('cmd').doc(pid).set({action:'mute',by:myId,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
+  var mb=document.getElementById('mb-'+pid);if(mb)mb.className='mute-badge on';
   toast('\uD83D\uDD07 \u062a\u0645 \u0643\u062a\u0645 \u0627\u0644\u0645\u0634\u0627\u0631\u0643');
 }
 function unmutePeer(pid){
-  var rRef=db.collection('rooms').doc(ROOM);
-  rRef.collection('cmd').doc(pid).set({action:'unmute',by:myId,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
-  var mb=document.getElementById('mb-'+pid); if(mb)mb.className='mute-badge';
-  toast('\uD83C\uDF99\uFE0F \u062a\u0645 \u062a\u0634\u063a\u064a\u0644 \u0645\u064a\u0643 \u0627\u0644\u0645\u0634\u0627\u0631\u0643');
+  db.collection('rooms').doc(myRoom).collection('cmd').doc(pid).set({action:'unmute',by:myId,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});
+  var mb=document.getElementById('mb-'+pid);if(mb)mb.className='mute-badge';
+  toast('\uD83C\uDF99\uFE0F \u062a\u0645 \u0641\u062a\u062d \u0645\u064a\u0643 \u0627\u0644\u0645\u0634\u0627\u0631\u0643');
 }
 
-// ── FULLSCREEN TILE ──────────────────────────────────────────
+// ── FULLSCREEN ───────────────────────────────────────────────
 var _fsId=null;
 function _toggleFullscreen(tile){
-  if(_fsId===tile.id){
-    tile.classList.remove('fullscreen');
-    _fsId=null;
-  }else{
-    if(_fsId){
-      var old=document.getElementById(_fsId);
-      if(old)old.classList.remove('fullscreen');
-    }
-    tile.classList.add('fullscreen');
-    _fsId=tile.id;
+  if(_fsId===tile.id){tile.classList.remove('fullscreen');_fsId=null;}
+  else{
+    if(_fsId){var old=document.getElementById(_fsId);if(old)old.classList.remove('fullscreen');}
+    tile.classList.add('fullscreen');_fsId=tile.id;
   }
 }
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'&&_fsId){
-    var t=document.getElementById(_fsId);if(t)t.classList.remove('fullscreen');_fsId=null;
-  }
+  if(e.key==='Escape'&&_fsId){var t=document.getElementById(_fsId);if(t)t.classList.remove('fullscreen');_fsId=null;}
 });
 
-// ── ROLE HELPERS ─────────────────────────────────────────────
-function _roleLabel(role){
-  return role==='teacher'?'\u0645\u062f\u0631\u0633':role==='ta'?'\u0645\u0633\u0627\u0639\u062f \u0645\u062f\u0631\u0633':'\u0637\u0627\u0644\u0628';
+// ── TILE / PC HELPERS ─────────────────────────────────────────
+function _roleLabel(role){return role==='teacher'?'\u0645\u062f\u0631\u0633':role==='ta'?'\u0645\u0633\u0627\u0639\u062f \u0645\u062f\u0631\u0633':'\u0637\u0627\u0644\u0628';}
+function _roleBadgeClass(role){return role==='teacher'?'rb-teacher':role==='ta'?'rb-ta':'rb-student';}
+function _setTileRoleBadge(tileId,role){
+  var tile=document.getElementById(tileId);if(!tile)return;
+  var ex=tile.querySelector('.role-badge');if(ex)ex.remove();
+  var b=document.createElement('div');b.className='role-badge '+_roleBadgeClass(role);
+  b.textContent=_roleLabel(role);tile.appendChild(b);
 }
-function _roleBadgeClass(role){
-  return role==='teacher'?'rb-teacher':role==='ta'?'rb-ta':'rb-student';
-}
-function _setTileRoleBadge(tileId, role){
-  var tile=document.getElementById(tileId); if(!tile)return;
-  var existing=tile.querySelector('.role-badge');
-  if(existing)existing.remove();
-  var b=document.createElement('div');
-  b.className='role-badge '+_roleBadgeClass(role);
-  b.textContent=role==='teacher'?'\u0645\u062f\u0631\u0633':role==='ta'?'\u0645\u0633\u0627\u0639\u062f':'\u0637\u0627\u0644\u0628';
-  tile.appendChild(b);
-}
-
-// ── TILE MANAGEMENT ─────────────────────────────────────────
-function _upsertTile(pid, pname, prole, stream){
+function _upsertTile(pid,pname,prole,stream){
   var vid=document.getElementById('rv-'+pid);
   if(vid){if(vid.srcObject!==stream){vid.srcObject=stream;safePlay(vid);}return;}
   var wait=document.getElementById('room-wait');if(wait)wait.style.display='none';
   var tile=document.createElement('div');tile.className='vtile';tile.id='rv-wrap-'+pid;
-  // Double-click → fullscreen
   tile.addEventListener('dblclick',function(){_toggleFullscreen(tile);});
   var _lTap=0;
   tile.addEventListener('touchend',function(e){var n=Date.now();if(n-_lTap<340){e.preventDefault();_toggleFullscreen(tile);}_lTap=n;},{passive:false});
-  var v=document.createElement('video');v.id='rv-'+pid;
-  mobileVideo(v,false);
+  var v=document.createElement('video');v.id='rv-'+pid;mobileVideo(v,false);
   v.style.cssText='width:100%;height:100%;object-fit:cover;display:block;background:#111';
   var voff=document.createElement('div');voff.className='voff';voff.id='rv-off-'+pid;
   voff.innerHTML='<span style="font-size:22px">\uD83D\uDCF7</span><span>\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629</span>';
@@ -1091,23 +1078,18 @@ function _upsertTile(pid, pname, prole, stream){
   }
   tile.appendChild(v);tile.appendChild(voff);tile.appendChild(mb);tile.appendChild(rb);tile.appendChild(lbl);tile.appendChild(acts);
   document.getElementById('vgrid').appendChild(tile);
-  v.srcObject=stream;safePlay(v);
-  _updateGrid();
+  v.srcObject=stream;safePlay(v);_updateGrid();
 }
-
 function _ensureAudio(pid,pname,stream){
   var vid=document.getElementById('rv-'+pid);
   if(vid){stream.getAudioTracks().forEach(function(at){if(!vid.srcObject.getTrackById(at.id))vid.srcObject.addTrack(at);});return;}
   _upsertTile(pid,pname+'(\uD83D\uDD07)',null,stream);
   var v=document.getElementById('rv-'+pid);if(v)v.style.background='#0d1117';
 }
-
 function _drop(pid){
   var e=peers[pid];if(e){try{e.pc.close();}catch(ex){}delete peers[pid];}
-  var w=document.getElementById('rv-wrap-'+pid);if(w)w.remove();
-  _updateGrid();
+  var w=document.getElementById('rv-wrap-'+pid);if(w)w.remove();_updateGrid();
 }
-
 function _updateGrid(){
   var grid=document.getElementById('vgrid');
   var tiles=grid.querySelectorAll('.vtile').length;
@@ -1118,21 +1100,18 @@ function _updateGrid(){
   else if(tiles<=9)grid.style.gridTemplateColumns='repeat(3,1fr)';
   else grid.style.gridTemplateColumns='repeat(4,1fr)';
 }
-
 function _makePc(pid,pname,prole,rRef){
   if(peers[pid])return;
   var pc=new RTCPeerConnection(ICE);
   peers[pid]={pc:pc,name:pname,role:prole||'student',rRef:rRef,iceBuf:[]};
   if(roomStream)roomStream.getTracks().forEach(function(t){pc.addTrack(t,roomStream);});
   pc.onicecandidate=function(e){if(e.candidate)rRef.collection('sig').add({t:'ice',fr:myId,to:pid,c:e.candidate.toJSON(),ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});};
-  var tStreams={};
+  var tS={};
   pc.ontrack=function(e){
-    var track=e.track;
-    var sid=(e.streams&&e.streams[0])?e.streams[0].id:track.kind;
-    if(!tStreams[sid])tStreams[sid]=new MediaStream();
-    tStreams[sid].addTrack(track);
-    if(track.kind==='video')_upsertTile(pid,pname,prole||'student',tStreams[sid]);
-    else if(track.kind==='audio')_ensureAudio(pid,pname,tStreams[sid]);
+    var track=e.track;var sid=(e.streams&&e.streams[0])?e.streams[0].id:track.kind;
+    if(!tS[sid])tS[sid]=new MediaStream();tS[sid].addTrack(track);
+    if(track.kind==='video')_upsertTile(pid,pname,prole||'student',tS[sid]);
+    else if(track.kind==='audio')_ensureAudio(pid,pname,tS[sid]);
   };
   pc.onconnectionstatechange=function(){
     var s=pc.connectionState;
@@ -1143,26 +1122,25 @@ function _makePc(pid,pname,prole,rRef){
     if(pc.iceConnectionState==='disconnected')setTimeout(function(){if(peers[pid]&&pc.iceConnectionState==='disconnected')_drop(pid);},8000);
   };
 }
-
 async function _doOffer(pid,rRef,restart){
   var entry=peers[pid];if(!entry)return;
   try{
-    var opts={offerToReceiveAudio:true,offerToReceiveVideo:true};
-    if(restart)opts.iceRestart=true;
-    var offer=await entry.pc.createOffer(opts);
-    await entry.pc.setLocalDescription(offer);
+    var opts={offerToReceiveAudio:true,offerToReceiveVideo:true};if(restart)opts.iceRestart=true;
+    var offer=await entry.pc.createOffer(opts);await entry.pc.setLocalDescription(offer);
     await rRef.collection('sig').add({t:'offer',fr:myId,fn:myName,role:myRole,to:pid,sdp:offer.sdp,ts:firebase.firestore.FieldValue.serverTimestamp()});
   }catch(e){console.warn('doOffer',pid,e);}
 }
 
+// ════════════════════════════════════════════
+// LEAVE ROOM + ROOM CONTROLS
+// ════════════════════════════════════════════
 async function leaveRoom(){
   Object.keys(peers).forEach(function(id){try{peers[id].pc.close();}catch(e){}});
   peers={};
-  unsubs.forEach(function(u){try{u();}catch(e){}});
-  unsubs=[];
-  try{await db.collection('rooms').doc(ROOM).collection('peers').doc(myId).delete();}catch(e){}
-  if(roomStream){roomStream.getTracks().forEach(function(t){t.stop();}); roomStream=null;}
-  myId=null; myName=''; myRole=''; rMicOff=false; rCamOff=false;
+  unsubs.forEach(function(u){try{u();}catch(e){}});unsubs=[];
+  try{if(myId&&myRoom)await db.collection('rooms').doc(myRoom).collection('peers').doc(myId).delete();}catch(e){}
+  if(roomStream){roomStream.getTracks().forEach(function(t){t.stop();});roomStream=null;}
+  myId=null;myName='';myRole='';myRoom='';rMicOff=false;rCamOff=false;selectedRole='';selectedCourse='';
   document.querySelectorAll('#vgrid .vtile:not(#my-tile)').forEach(function(el){el.remove();});
   var wait=document.getElementById('room-wait');if(wait)wait.style.display='flex';
   var mv=document.getElementById('my-video');mv.srcObject=null;
@@ -1171,148 +1149,64 @@ async function leaveRoom(){
   document.getElementById('btn-mute-all').style.display='none';
   document.getElementById('room-active').style.display='none';
   document.getElementById('room-lobby').style.display='block';
-  // Reset to step 1 of auth
-  document.getElementById('auth-step1').style.display='';
-  document.getElementById('auth-step2').style.display='none';
-  document.getElementById('auth-step3').style.display='none';
-  selectedRole='';
-  document.getElementById('role-btn-teacher').className='role-btn';
-  document.getElementById('role-btn-student').className='role-btn';
+  document.getElementById('inp-code').value='';
+  document.getElementById('code-error-msg').style.display='none';
+  goAuthStep(1);
   document.getElementById('rff').className='face-btn active';
   document.getElementById('rfb').className='face-btn';
+  document.getElementById('btn-manage-codes').style.display='none';
   _syncRoomControls();_updateGrid();
   if(_fsId){var ft=document.getElementById(_fsId);if(ft)ft.classList.remove('fullscreen');_fsId=null;}
   toast('\u063a\u0627\u062f\u0631\u062a \u0627\u0644\u063a\u0631\u0641\u0629');
 }
 
-// ── ROOM CODES MANAGEMENT ────────────────────────────────────
-async function openCodesModal(){
-  await loadRoomCodes();
-  document.getElementById('inp-teacher-code').value=roomCodes.teacherCode||'TEACHER123';
-  document.getElementById('inp-ta-code').value=roomCodes.taCode||'TA456';
-  var scl=document.getElementById('student-codes-list');scl.innerHTML='';
-  var sc=roomCodes.studentCodes||{};
-  Object.keys(sc).forEach(function(name){addStudentCodeRow(name,sc[name]);});
-  openOv('ov-codes');
-}
-function addStudentCodeRow(name,code){
-  var list=document.getElementById('student-codes-list');
-  var row=document.createElement('div');row.className='er';row.style.marginBottom='6px';
-  var ni=document.createElement('input');ni.type='text';ni.placeholder='\u0627\u0633\u0645 \u0627\u0644\u0637\u0627\u0644\u0628';ni.value=name||'';
-  var ci=document.createElement('input');ci.type='text';ci.placeholder='\u0631\u0645\u0632 \u0641\u0631\u064a\u062f';ci.value=code||'';ci.style.cssText='direction:ltr;letter-spacing:1px;font-weight:700;flex:0.8';
-  var gen=document.createElement('button');gen.textContent='\u0631\u0645\u0632 \u062a\u0644\u0642\u0627\u0626\u064a';gen.style.cssText='background:var(--blue-bg);border:1px solid var(--blue);color:var(--blue);border-radius:4px;cursor:pointer;padding:4px 8px;font-size:11px;font-family:inherit;white-space:nowrap';
-  gen.onclick=function(){ci.value=Math.random().toString(36).slice(2,8).toUpperCase();};
-  var del=document.createElement('button');del.textContent='\u062d\u0630\u0641';del.style.cssText='background:var(--red-bg);border:1px solid #d96060;color:var(--red-text);border-radius:4px;cursor:pointer;padding:4px 8px;font-size:11px;font-family:inherit';
-  del.onclick=function(){row.remove();};
-  row.appendChild(ni);row.appendChild(ci);row.appendChild(gen);row.appendChild(del);
-  list.appendChild(row);
-  if(!name)ni.focus();
-}
-async function saveRoomCodes(){
-  var tc=document.getElementById('inp-teacher-code').value.trim().toUpperCase();
-  var tac=document.getElementById('inp-ta-code').value.trim().toUpperCase();
-  if(!tc||!tac){toast('\u26a0\ufe0f \u0623\u062f\u062e\u0644 \u0631\u0645\u0632\u064a \u0627\u0644\u0645\u062f\u0631\u0633 \u0648\u0627\u0644\u0645\u0633\u0627\u0639\u062f');return;}
-  var sc={};
-  var rows=document.querySelectorAll('#student-codes-list .er');
-  rows.forEach(function(row){
-    var ins=row.querySelectorAll('input');
-    var n=ins[0]&&ins[0].value.trim();var c=ins[1]&&ins[1].value.trim().toUpperCase();
-    if(n&&c)sc[n]=c;
-  });
-  var newCodes={teacherCode:tc,taCode:tac,studentCodes:sc};
-  await db.collection('config').doc('room').set(newCodes);
-  roomCodes=newCodes;
-  closeOv('ov-codes');
-  toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0631\u0645\u0648\u0632');
-}
-// Show manage button when teacher is in room
-function _showCodesBtn(){
-  if(myRole==='teacher'||myRole==='ta') document.getElementById('btn-manage-codes').style.display='';
-}
-
-// Mic toggle
 function roomToggleMic(){
-  if(!roomStream)return;
-  var at=roomStream.getAudioTracks()[0]; if(!at)return;
-  rMicOff=!rMicOff; at.enabled=!rMicOff;
-  _syncRoomControls();
+  if(!roomStream)return;var at=roomStream.getAudioTracks()[0];if(!at)return;
+  rMicOff=!rMicOff;at.enabled=!rMicOff;_syncRoomControls();
   toast(rMicOff?'\u0645\u064a\u0643 \u0645\u0643\u062a\u0648\u0645':'\u0645\u064a\u0643 \u0645\u0641\u0639\u0651\u0644');
 }
-
-// Camera on/off toggle
 function roomToggleCam(){
-  if(!roomStream)return;
-  var vt=roomStream.getVideoTracks()[0]; if(!vt)return;
-  rCamOff=!rCamOff; vt.enabled=!rCamOff;
+  if(!roomStream)return;var vt=roomStream.getVideoTracks()[0];if(!vt)return;
+  rCamOff=!rCamOff;vt.enabled=!rCamOff;
   document.getElementById('my-voff').className='voff'+(rCamOff?' on':'');
   document.getElementById('my-video').style.opacity=rCamOff?'0':'1';
-  _syncRoomControls();
-  toast(rCamOff?'\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629':'\u0643\u0627\u0645\u064a\u0631\u0627 \u0634\u063a\u0627\u0644\u0629');
+  _syncRoomControls();toast(rCamOff?'\u0643\u0627\u0645\u064a\u0631\u0627 \u0645\u062a\u0648\u0642\u0641\u0629':'\u0643\u0627\u0645\u064a\u0631\u0627 \u0634\u063a\u0627\u0644\u0629');
 }
-
-// Switch front/back camera while in room
 async function roomSetFace(face){
-  rFacing=face==='front'?'user':'environment';
-  rDeviceId=''; // clear specific device selection
+  rFacing=face==='front'?'user':'environment';rDeviceId='';
   document.getElementById('rff').className='face-btn'+(face==='front'?' active':'');
   document.getElementById('rfb').className='face-btn'+(face==='back'?' active':'');
   document.getElementById('room-cam-sel').value='';
-  await _replaceVideoTrack('', rFacing);
+  await _replaceVideoTrack('',rFacing);
 }
-
-// Switch to a specific camera device (USB or built-in)
 async function roomSwitchCam(){
-  var devId=document.getElementById('room-cam-sel').value;
-  rDeviceId=devId;
-  // Clear facing buttons (specific device ignores facing)
-  if(devId){
-    document.getElementById('rff').className='face-btn';
-    document.getElementById('rfb').className='face-btn';
-  }
-  await _replaceVideoTrack(devId, rFacing);
+  var devId=document.getElementById('room-cam-sel').value;rDeviceId=devId;
+  if(devId){document.getElementById('rff').className='face-btn';document.getElementById('rfb').className='face-btn';}
+  await _replaceVideoTrack(devId,rFacing);
 }
-
-// Replace the current video track with a new one (camera switch while in room)
-async function _replaceVideoTrack(deviceId, facing){
+async function _replaceVideoTrack(deviceId,facing){
   if(!roomStream)return;
-  var ns=await getMedia(deviceId||'', facing, false);
-  if(!ns){toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627');return;}
-  var newVT=ns.getVideoTracks()[0];
-  if(!newVT){ns.getTracks().forEach(function(t){t.stop();});return;}
-
-  // Replace in all peer connections
+  var ns=await getMedia(deviceId||'',facing,false);if(!ns){toast('\u26a0\ufe0f \u062a\u0639\u0630\u0651\u0631 \u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627');return;}
+  var newVT=ns.getVideoTracks()[0];if(!newVT){ns.getTracks().forEach(function(t){t.stop();});return;}
   Object.keys(peers).forEach(function(pid){
     var senders=peers[pid].pc.getSenders();
-    var sender=senders.find(function(s){
-      return s.track && s.track.kind==='video' &&
-             roomStream.getVideoTracks().some(function(t){return t.id===s.track.id;});
-    });
-    if(!sender) sender=senders.find(function(s){return s.track&&s.track.kind==='video';});
-    if(sender) sender.replaceTrack(newVT).catch(function(){});
+    var sender=senders.find(function(s){return s.track&&s.track.kind==='video'&&roomStream.getVideoTracks().some(function(t){return t.id===s.track.id;});});
+    if(!sender)sender=senders.find(function(s){return s.track&&s.track.kind==='video';});
+    if(sender)sender.replaceTrack(newVT).catch(function(){});
   });
-
-  // Replace in local stream
-  var oldVT=roomStream.getVideoTracks()[0];
-  if(oldVT){roomStream.removeTrack(oldVT); oldVT.stop();}
+  var oldVT=roomStream.getVideoTracks()[0];if(oldVT){roomStream.removeTrack(oldVT);oldVT.stop();}
   roomStream.addTrack(newVT);
-
-  // Refresh local preview
-  var mv=document.getElementById('my-video');
-  mv.srcObject=null; mv.srcObject=roomStream; safePlay(mv);
+  var mv=document.getElementById('my-video');mv.srcObject=null;mv.srcObject=roomStream;safePlay(mv);
   toast('\u062a\u0645 \u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627');
 }
-
 function _syncRoomControls(){
-  var bm=document.getElementById('room-btn-mic');
-  var bc=document.getElementById('room-btn-cam');
+  var bm=document.getElementById('room-btn-mic');var bc=document.getElementById('room-btn-cam');
   if(bm){bm.textContent=rMicOff?'\uD83D\uDD07 \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0645\u064a\u0643':'\uD83C\uDF99\uFE0F \u0643\u062a\u0645';bm.className=rMicOff?'btn btn-amber btn-sm':'btn btn-gray btn-sm';}
   if(bc){bc.textContent=rCamOff?'\uD83D\uDCF7 \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0643\u0627\u0645':'\uD83D\uDCF7 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u0643\u0627\u0645';bc.className=rCamOff?'btn btn-amber btn-sm':'btn btn-gray btn-sm';}
 }
-
 function _permMsg(msg,type){
-  var el=document.getElementById('room-perm-msg'); if(!el)return;
-  el.textContent=msg; el.style.display='block';
-  el.style.cssText='display:block;max-width:280px;margin:0 auto 10px;padding:6px 12px;border-radius:6px;font-size:12px;text-align:center;background:'+(type==='amber'?'var(--amber-bg);color:var(--amber-text)':'var(--red-bg);color:var(--red-text)');
+  var el=document.getElementById('room-perm-msg');if(!el)return;el.textContent=msg;el.style.display='block';
+  el.style.cssText='display:block;max-width:280px;margin:0 auto 8px;padding:6px 12px;border-radius:6px;font-size:12px;text-align:center;background:'+(type==='amber'?'var(--amber-bg);color:var(--amber-text)':'var(--red-bg);color:var(--red-text)');
 }
 
 // ════════════════════════════════════════════
@@ -1485,11 +1379,88 @@ function markAll(st){getStu(activeCourse).forEach(function(s){attendance[s.id]=s
 function updateCnt(){var sts=getStu(activeCourse);var p=0,a=0,l=0;sts.forEach(function(s){var v=attendance[s.id]||'none';if(v==='present')p++;else if(v==='absent')a++;else if(v==='late')l++;});document.getElementById('cnt-p').textContent=p;document.getElementById('cnt-a').textContent=a;document.getElementById('cnt-l').textContent=l;}
 function submitAtt(){var sts=getStu(activeCourse);if(!sts.length){toast('\u0644\u0627 \u064a\u0648\u062c\u062f \u0637\u0644\u0627\u0628');return;}var unm=sts.filter(function(s){return!attendance[s.id]||attendance[s.id]==='none';});if(unm.length){toast('\u26a0\ufe0f '+unm.length+' \u0637\u0627\u0644\u0628 \u0644\u0645 \u064a\u064f\u0633\u062c\u0651\u0644');return;}var d=new Date();var pr=0,la=0,ab=0;sts.forEach(function(s){var v=attendance[s.id];if(v==='present')pr++;else if(v==='late')la++;else if(v==='absent')ab++;});var rate=Math.round(((pr+la)/sts.length)*100);var snap={};sts.forEach(function(s){snap[s.id]={name:s.name,status:attendance[s.id]||'none'};});db.collection('attendance').add({title:document.getElementById('ses-title').value.trim()||'\u062c\u0644\u0633\u0629',course:activeCourse,date:d.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'}),present:pr,late:la,absent:ab,total:sts.length,rate:rate,snapshot:snap,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){sts.forEach(function(s){attendance[s.id]='none';});renderStudents();loadHistory();toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0633\u062c\u0644 \u0627\u0644\u062d\u0636\u0648\u0631');}).catch(function(e){toast('\u26a0\ufe0f '+e.message);});}
 
-function openStudentsModal(){document.getElementById('modal-course-name').textContent=activeCourse;var sts=getStu(activeCourse);var list=document.getElementById('students-list');list.innerHTML='';sts.forEach(function(s,i){addStuRow(s.name,s.id,s.av,i);});openOv('ov-students');}
-function addStuRow(name,id,av,idx){var list=document.getElementById('students-list');var row=document.createElement('div');row.className='er';var num=document.createElement('span');num.className='en';num.textContent=(typeof idx==='number'?idx:list.children.length)+1;var inp=document.createElement('input');inp.type='text';inp.value=name||'';inp.placeholder='\u0627\u0633\u0645 \u0627\u0644\u0637\u0627\u0644\u0628';if(id)inp.setAttribute('data-id',id);if(av)inp.setAttribute('data-av',av);var del=document.createElement('button');del.textContent='\u062d\u0630\u0641';del.style.cssText='background:var(--red-bg);border:1px solid #d96060;color:var(--red-text);border-radius:4px;cursor:pointer;padding:4px 8px;font-size:11px;font-family:inherit;appearance:none';del.onclick=function(){row.remove();renumStu();};row.appendChild(num);row.appendChild(inp);row.appendChild(del);list.appendChild(row);}
-function addStudentRow(){var id='S'+pad(stuCounter++);addStuRow('',id,avC[document.getElementById('students-list').children.length%avC.length]);var ins=document.querySelectorAll('#students-list input');if(ins.length)ins[ins.length-1].focus();}
+function openStudentsModal(keepVisible){
+  document.getElementById('modal-course-name').textContent=activeCourse;
+  // Reset reveal state unless keepVisible
+  if(!keepVisible){
+    codesVisible=false;
+    document.getElementById('btn-reveal').style.display='';
+    document.getElementById('admin-pin-inp').style.display='';
+    document.getElementById('admin-pin-inp').value='';
+    document.getElementById('btn-copy-all').style.display='none';
+  }
+  var sts=getStu(activeCourse);
+  var list=document.getElementById('students-list');list.innerHTML='';
+  if(!sts.length){
+    list.innerHTML='<div class="empty">\u0644\u0627 \u064a\u0648\u062c\u062f \u0637\u0644\u0627\u0628 \u2014 \u0627\u0636\u063a\u0637 + \u0625\u0636\u0627\u0641\u0629 \u0637\u0627\u0644\u0628</div>';
+  } else {
+    sts.forEach(function(s,i){addStuRow(s.name,s.id,s.av,i);});
+  }
+  openOv('ov-students');
+}
+
+function addStuRow(name,id,av,idx){
+  var list=document.getElementById('students-list');
+  var row=document.createElement('div');
+  row.className='er';row.style.cssText='margin-bottom:6px;align-items:center';
+  var num=document.createElement('span');num.className='en';num.textContent=(typeof idx==='number'?idx+1:list.children.length+1);
+  // Name input
+  var inp=document.createElement('input');inp.type='text';inp.value=name||'';inp.placeholder='\u0627\u0633\u0645 \u0627\u0644\u0637\u0627\u0644\u0628';inp.style.flex='1';
+  if(id)inp.setAttribute('data-id',id);if(av)inp.setAttribute('data-av',av);
+  // Auto-generate code when name is entered
+  inp.addEventListener('blur',function(){
+    var n=inp.value.trim();
+    if(n){getOrCreateCode(n);}
+    // Update code display if visible
+    var codeSpan=row.querySelector('.code-display');
+    if(codeSpan&&codesVisible)codeSpan.textContent=n?getOrCreateCode(n):'—';
+  });
+  // Code display (hidden unless admin reveals)
+  var codeWrap=document.createElement('span');
+  codeWrap.style.cssText='display:flex;align-items:center;gap:4px;flex-shrink:0';
+  var codeSpan=document.createElement('span');
+  codeSpan.className='code-display';
+  codeSpan.style.cssText='direction:ltr;font-weight:700;font-size:12px;letter-spacing:1px;color:var(--blue);min-width:60px;text-align:center;background:var(--blue-bg);padding:2px 6px;border-radius:4px';
+  codeSpan.textContent=codesVisible&&name?getOrCreateCode(name):'••••••';
+  codeWrap.appendChild(codeSpan);
+  var del=document.createElement('button');del.textContent='\u062d\u0630\u0641';del.style.cssText='background:var(--red-bg);border:1px solid #d96060;color:var(--red-text);border-radius:4px;cursor:pointer;padding:4px 8px;font-size:11px;font-family:inherit;appearance:none;flex-shrink:0';
+  del.onclick=function(){row.remove();renumStu();};
+  row.appendChild(num);row.appendChild(inp);row.appendChild(codeWrap);row.appendChild(del);
+  list.appendChild(row);
+}
+
+function addStudentRow(){
+  var id='S'+pad(stuCounter++);
+  var av=avC[document.getElementById('students-list').children.length%avC.length];
+  addStuRow('',id,av);
+  var rows=document.querySelectorAll('#students-list .er');
+  if(rows.length){rows[rows.length-1].querySelector('input[type=text]').focus();}
+}
+
 function renumStu(){document.querySelectorAll('#students-list .er').forEach(function(r,i){var n=r.querySelector('.en');if(n)n.textContent=i+1;});}
-function saveStudents(){var inputs=document.querySelectorAll('#students-list input');var ns=[];inputs.forEach(function(inp,i){var name=inp.value.trim();if(!name)return;ns.push({id:inp.getAttribute('data-id')||('S'+pad(stuCounter++)),name:name,av:inp.getAttribute('data-av')||avC[i%avC.length]});});if(!ns.length){toast('\u26a0\ufe0f \u0623\u0636\u0641 \u0637\u0627\u0644\u0628\u0627\u064b');return;}courseStudents[activeCourse]=ns;saveConfig('courseStudents',courseStudents);closeOv('ov-students');toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0637\u0644\u0627\u0628 '+activeCourse);}
+
+async function saveStudents(){
+  var rows=document.querySelectorAll('#students-list .er');
+  var ns=[];
+  rows.forEach(function(row,i){
+    var inp=row.querySelector('input[type=text]');
+    var name=inp?inp.value.trim():'';if(!name)return;
+    var id=inp.getAttribute('data-id')||('S'+pad(stuCounter++));
+    var av=inp.getAttribute('data-av')||avC[i%avC.length];
+    // Ensure code exists for this student
+    getOrCreateCode(name);
+    ns.push({id:id,name:name,av:av});
+  });
+  if(!ns.length){toast('\u26a0\ufe0f \u0623\u0636\u0641 \u0637\u0627\u0644\u0628\u0627\u064b');return;}
+  courseStudents[activeCourse]=ns;
+  // Save studentCodes map globally (same code across courses)
+  var updates={courseStudents:courseStudents, studentCodes:studentCodesMap};
+  showSync(true);
+  await db.collection('config').doc('app').set(updates,{merge:true});
+  showSync(false);
+  closeOv('ov-students');
+  toast('\u2705 \u062a\u0645 \u062d\u0641\u0638 \u0637\u0644\u0627\u0628 '+activeCourse+' \u2014 \u0627\u0644\u0631\u0645\u0648\u0632 \u0645\u062d\u062f\u062b\u0629');
+}
 
 function openCoursesModal(){var list=document.getElementById('courses-list');list.innerHTML='';(courses.length?courses:DC).forEach(function(c){addCrRow(c);});openOv('ov-courses');}
 var dragSrc=null;
@@ -1531,7 +1502,6 @@ var _now=new Date();
 document.getElementById('h-date').textContent=_now.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 document.getElementById('att-date').textContent='\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0637\u0644\u0627\u0628 \u2014 '+_now.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
 renderCS(DC); renderCAT(DC); renderStudents(); listenConfig(); loadHistory();
-loadRoomCodes();
 </script>
 </body>
 </html>
