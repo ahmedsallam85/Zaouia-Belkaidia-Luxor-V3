@@ -147,8 +147,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .role-btn .role-name{font-size:13px;font-weight:700;color:var(--text)}
 .role-btn .role-hint{font-size:11px;color:var(--text3);margin-top:2px}
 /* WAITING ROOM (for unapproved students) */
-.wait-room{text-align:center;padding:28px 16px}
-.wait-spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 14px}
 /* ROLE BADGE on tile */
 .vtile .role-badge{position:absolute;top:5px;right:6px;font-size:10px;padding:1px 6px;border-radius:3px;font-weight:700;z-index:3;pointer-events:none}
 .rb-teacher{background:#1a5fa8;color:#fff}
@@ -165,10 +163,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .vtile.fullscreen{position:fixed;inset:0;z-index:500;border-radius:0;aspect-ratio:unset}
 .vtile.fullscreen .vname{font-size:14px;padding:3px 12px}
 .vtile.fullscreen .tile-actions{display:flex}
-/* APPROVAL PANEL (teacher sees pending students) */
-.approval-list{display:flex;flex-direction:column;gap:6px}
-.approval-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--amber-bg);border:1px solid #c49040;border-radius:var(--radius-sm);flex-wrap:wrap;gap:6px}
-.approval-name{font-size:13px;font-weight:600;color:var(--amber-text)}
 
 </style>
 </head>
@@ -263,17 +257,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <button class="btn btn-primary" id="btn-join" onclick="joinRoom()" style="font-size:14px;padding:9px 22px">دخول الغرفة</button>
         </div>
       </div>
-
-      <!-- STEP 4: Waiting for teacher approval (students only) -->
-      <div id="auth-step4" style="display:none" class="auth-wrap">
-        <div class="wait-room">
-          <div class="wait-spin"></div>
-          <div style="font-size:15px;font-weight:700;margin-bottom:6px">في انتظار الموافقة</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">المادة: <strong id="wait-room-name"></strong></div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:14px">المدرس سيقبل طلبك قريباً...</div>
-          <button class="btn btn-danger btn-sm" onclick="cancelWaiting()">إلغاء</button>
-        </div>
-      </div>
     </div>
 
     <!-- ACTIVE ROOM -->
@@ -287,14 +270,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <span style="font-size:12px;color:var(--blue);font-weight:600" id="room-count">👥 1</span>
           <button class="btn btn-danger btn-sm" onclick="leaveRoom()">✕ مغادرة</button>
         </div>
-      </div>
-
-      <!-- APPROVAL PANEL (only shown to teacher/TA) -->
-      <div id="approval-panel" style="display:none;margin-bottom:8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:12px;font-weight:600;color:var(--amber-text)">⏳ طلبات الدخول (<span id="pending-count">0</span>)</span>
-        </div>
-        <div class="approval-list" id="approval-list"></div>
       </div>
 
       <!-- VIDEO GRID — all tiles here -->
@@ -692,7 +667,6 @@ var unsubs=[];
 var rMicOff=false, rCamOff=false, rFacing='user', rDeviceId='';
 var selectedRole='';   // 'teacher'|'ta'|'student'
 var selectedCourse=''; // course name chosen in step 2
-var pendingId=null;
 var codesVisible=false; // whether admin has revealed codes in modal
 
 // FIXED ADMIN CODES
@@ -725,11 +699,17 @@ function _uid(){return Date.now().toString(36)+Math.random().toString(36).slice(
 // All courses share the same code map — same student, same code
 var studentCodesMap={};  // {name: code} loaded from Firestore
 
+// Find the next available sequential code starting from 100
+// Codes are simple 3-digit numbers (100, 101, 102, ...)
 function _genCode(){
-  // 6-char alphanumeric, uppercase, easy to type
-  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  var c='';for(var i=0;i<6;i++)c+=chars[Math.floor(Math.random()*chars.length)];
-  return c;
+  var used={};
+  Object.keys(studentCodesMap).forEach(function(name){
+    var c=studentCodesMap[name];
+    if(c) used[String(c).trim()]=true;
+  });
+  var n=100;
+  while(used[String(n)]) n++;
+  return String(n);
 }
 
 function getOrCreateCode(name){
@@ -741,7 +721,7 @@ function getOrCreateCode(name){
 
 // ── AUTH FLOW ────────────────────────────────────────────────
 function goAuthStep(n){
-  [1,2,3,4].forEach(function(i){
+  [1,2,3].forEach(function(i){
     document.getElementById('auth-step'+i).style.display=(i===n?'':'none');
   });
   if(n===1) document.getElementById('inp-code').focus();
@@ -767,7 +747,7 @@ async function verifyCodeStep(){
   }catch(e){}
 
   var match=Object.keys(smCodes).find(function(name){
-    return (smCodes[name]||'').toUpperCase()===code.toUpperCase();
+    return String(smCodes[name]||'').trim()===String(code).trim();
   });
 
   if(match){
@@ -839,43 +819,17 @@ async function joinRoom(){
   rFacing=lobbyFacing; rDeviceId=selCamId;
 
   if(selectedRole==='student'){
-    await _enterPending(name, myId, myRoom, selectedCourse);
+    // Student enters directly — no approval required
+    await _enterRoom(name, myId, 'student', myRoom, selectedCourse);
   } else {
     await _enterRoom(name, myId, selectedRole, myRoom, selectedCourse);
   }
 }
 
-// Student → pending collection, show step 4
-async function _enterPending(name, id, room, courseName){
-  pendingId=id;
-  var rRef=db.collection('rooms').doc(room);
-  await rRef.collection('pending').doc(id).set({
-    name:name, id:id, at:firebase.firestore.FieldValue.serverTimestamp(), status:'waiting'
-  });
-  document.getElementById('wait-room-name').textContent=courseName;
-  goAuthStep(4);
-
-  var unsub=rRef.collection('pending').doc(id).onSnapshot(function(doc){
-    if(!doc.exists)return;
-    var d=doc.data();
-    if(d.status==='approved'){
-      unsub();doc.ref.delete().catch(function(){});
-      goAuthStep(1); // reset visible
-      _enterRoom(myName, myId, 'student', myRoom, selectedCourse);
-    } else if(d.status==='rejected'){
-      unsub();doc.ref.delete().catch(function(){});pendingId=null;
-      goAuthStep(1);
-      document.getElementById('inp-code').value='';
-      toast('\u274c \u062a\u0645 \u0631\u0641\u0636 \u0637\u0644\u0628\u0643. \u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0627\u0644\u0645\u062f\u0631\u0633.');
-    }
-  });
-}
+// Student → pending: REMOVED (students now enter directly without approval)
+// Kept as no-op so any leftover references don't break.
 
 async function cancelWaiting(){
-  if(pendingId){
-    await db.collection('rooms').doc(myRoom).collection('pending').doc(pendingId).delete().catch(function(){});
-    pendingId=null;
-  }
   if(roomStream){roomStream.getTracks().forEach(function(t){t.stop();});roomStream=null;}
   goAuthStep(1);
   document.getElementById('inp-code').value='';
@@ -904,7 +858,7 @@ async function _enterRoom(name, id, role, roomId, courseName){
   await rRef.set({active:true,course:courseName},{merge:true});
   await rRef.collection('peers').doc(id).set({name:name,role:role,at:firebase.firestore.FieldValue.serverTimestamp()});
 
-  if(isAuth) _watchPending(rRef);
+  // Approval removed — students join directly, no pending watch needed
 
   // Listen for mute commands
   var uCmd=rRef.collection('cmd').doc(id).onSnapshot(function(doc){
@@ -985,35 +939,7 @@ async function _enterRoom(name, id, role, roomId, courseName){
 }
 
 // ── PENDING ──────────────────────────────────────────────────
-function _watchPending(rRef){
-  var u=rRef.collection('pending').where('status','==','waiting')
-    .onSnapshot(function(snap){
-      var panel=document.getElementById('approval-panel');
-      var list=document.getElementById('approval-list');
-      document.getElementById('pending-count').textContent=snap.size;
-      panel.style.display=snap.size>0?'block':'none';
-      list.innerHTML='';
-      snap.forEach(function(doc){
-        var d=doc.data();
-        var row=document.createElement('div');row.className='approval-row';
-        row.innerHTML='<span class="approval-name">\uD83D\uDC68\u200D\uD83C\uDF93 '+esc(d.name)+'</span>'
-          +'<div style="display:flex;gap:5px">'
-          +'<button class="btn btn-green btn-sm" onclick="approveStudent(\''+d.id+'\')">\u2714 \u0642\u0628\u0648\u0644</button>'
-          +'<button class="btn btn-danger btn-sm" onclick="rejectStudent(\''+d.id+'\')">\u2716 \u0631\u0641\u0636</button>'
-          +'</div>';
-        list.appendChild(row);
-      });
-    });
-  unsubs.push(u);
-}
-async function approveStudent(sid){
-  await db.collection('rooms').doc(myRoom).collection('pending').doc(sid).update({status:'approved'});
-  toast('\u2705 \u062a\u0645 \u0642\u0628\u0648\u0644 \u0627\u0644\u0637\u0627\u0644\u0628');
-}
-async function rejectStudent(sid){
-  await db.collection('rooms').doc(myRoom).collection('pending').doc(sid).update({status:'rejected'});
-  toast('\u062a\u0645 \u0631\u0641\u0636 \u0637\u0644\u0628 \u0627\u0644\u062f\u062e\u0648\u0644');
-}
+// Approval system removed — students enter directly
 
 // ── MUTE ─────────────────────────────────────────────────────
 function muteAll(){
@@ -1147,7 +1073,6 @@ async function leaveRoom(){
   var wait=document.getElementById('room-wait');if(wait)wait.style.display='flex';
   var mv=document.getElementById('my-video');mv.srcObject=null;
   document.getElementById('my-voff').className='voff';
-  document.getElementById('approval-panel').style.display='none';
   document.getElementById('btn-mute-all').style.display='none';
   document.getElementById('room-active').style.display='none';
   document.getElementById('room-lobby').style.display='block';
@@ -1384,6 +1309,9 @@ function submitAtt(){var sts=getStu(activeCourse);if(!sts.length){toast('\u0644\
 async function openStudentsModal(keepVisible){
   document.getElementById('modal-course-name').textContent=activeCourse;
 
+  // Reset admin verification on every fresh open
+  if(!keepVisible) adminCodeVerified=false;
+
   // Always load latest codes from Firestore before opening
   try{
     var doc=await db.collection('config').doc('app').get();
@@ -1424,20 +1352,36 @@ async function openStudentsModal(keepVisible){
   openOv('ov-students');
 }
 
-// Toggle show/hide codes
+// Admin verification state for codes view (resets when modal closes)
+var adminCodeVerified=false;
+
+// Toggle show/hide codes — requires admin code first time per session
 function toggleCodesVisibility(){
+  // If we're not yet verified as admin AND user is not in room as teacher/ta, ask for code
+  var isInRoomAsAdmin = (myRole==='teacher'||myRole==='ta');
+  if(!adminCodeVerified && !isInRoomAsAdmin){
+    var entered=prompt('\u062f\u062e\u0648\u0644 \u0625\u062f\u0627\u0631\u064a — \u0623\u062f\u062e\u0644 \u0631\u0645\u0632 \u0627\u0644\u0645\u062f\u0631\u0633 (01) \u0623\u0648 \u0631\u0645\u0632 \u0627\u0644\u0645\u0633\u0627\u0639\u062f (02):');
+    if(entered===null)return; // user canceled
+    var trimmed=String(entered).trim();
+    if(trimmed!==TEACHER_CODE && trimmed!==TA_CODE){
+      toast('\u274c \u0631\u0645\u0632 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d \u2014 \u0627\u0644\u0631\u0645\u0648\u0632 \u0644\u0644\u0623\u062f\u0645\u0646 \u0641\u0642\u0637');
+      return;
+    }
+    adminCodeVerified=true;
+  }
+
   codesVisible=!codesVisible;
   var btn=document.getElementById('btn-toggle-codes');
   if(btn) btn.textContent=codesVisible?'\uD83D\uDE48 \u0625\u062e\u0641\u0627\u0621 \u0627\u0644\u0631\u0645\u0648\u0632':'\uD83D\uDC41 \u0625\u0638\u0647\u0627\u0631 \u0627\u0644\u0631\u0645\u0648\u0632';
   var copyBtn=document.getElementById('btn-copy-all');
   if(copyBtn) copyBtn.style.display=codesVisible?'':'none';
 
-  // Update every row — get name from the text input in the same row
+  // Update every row
   document.querySelectorAll('#students-list .er').forEach(function(row){
     var inp=row.querySelector('input[type=text]');
     var span=row.querySelector('.code-display');
     if(!inp||!span)return;
-    var n=(inp.value||inp.getAttribute('data-name-cached')||span.getAttribute('data-name')||'').trim();
+    var n=(inp.value||span.getAttribute('data-name')||'').trim();
     if(codesVisible){
       span.textContent = n ? (studentCodesMap[n]||getOrCreateCode(n)) : '\u2014';
       if(n) span.setAttribute('data-name',n);
@@ -1448,6 +1392,10 @@ function toggleCodesVisibility(){
 }
 
 function copyAllCodes(){
+  // Only allow if admin verified or already in room as teacher/ta
+  if(!adminCodeVerified && myRole!=='teacher' && myRole!=='ta'){
+    toast('\u274c \u062e\u0627\u0635 \u0628\u0627\u0644\u0623\u062f\u0645\u0646');return;
+  }
   var lines=['\u0627\u0644\u0637\u0627\u0644\u0628 \u2014 \u0631\u0645\u0632 \u0627\u0644\u062f\u062e\u0648\u0644','\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015'];
   getStu(activeCourse).forEach(function(s){
     lines.push(s.name+' : '+(studentCodesMap[s.name]||getOrCreateCode(s.name)));
