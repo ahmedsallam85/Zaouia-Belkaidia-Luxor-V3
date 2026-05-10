@@ -432,20 +432,22 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div class="mt">👨‍🎓 طلاب: <span id="modal-course-name"></span></div>
     </div>
     <div style="font-size:11px;color:var(--blue);background:var(--blue-bg);padding:7px 10px;border-radius:6px;margin-bottom:10px">
-      🔑 الرمز يُولَّد تلقائياً لكل طالب — الرموز مرئية للأدمن فقط<br/>
-      الطالب المسجل في أكثر من مادة يستخدم نفس الرمز
+      🔑 الرمز يُولَّد تلقائياً عند إضافة الطالب — نفس الرمز في جميع المواد
     </div>
-    <!-- Admin PIN to reveal codes -->
-    <div id="admin-reveal-wrap" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-      <button class="btn btn-amber btn-sm" onclick="revealCodes()" id="btn-reveal">🔓 عرض الرموز (أدمن)</button>
-      <input type="password" id="admin-pin-inp" placeholder="رمز الأدمن (01 أو 02)" style="max-width:160px;direction:ltr;letter-spacing:2px" onkeydown="if(event.key==='Enter')revealCodes()"/>
+    <!-- Toggle codes visibility -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <button class="btn btn-amber btn-sm" id="btn-toggle-codes" onclick="toggleCodesVisibility()">
+        👁 إظهار الرموز
+      </button>
+      <button class="btn btn-sm" id="btn-copy-all" onclick="copyAllCodes()" style="display:none">
+        📋 نسخ كل الرموز
+      </button>
     </div>
     <div id="students-list" style="max-height:340px;overflow-y:auto"></div>
     <div class="div"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-green btn-sm" onclick="addStudentRow()">+ إضافة طالب</button>
-        <button class="btn btn-sm" id="btn-copy-all" onclick="copyAllCodes()" style="display:none">📋 نسخ كل الرموز</button>
       </div>
       <button class="btn btn-sm" onclick="closeOv('ov-students')">إغلاق</button>
     </div>
@@ -1381,13 +1383,12 @@ function submitAtt(){var sts=getStu(activeCourse);if(!sts.length){toast('\u0644\
 
 function openStudentsModal(keepVisible){
   document.getElementById('modal-course-name').textContent=activeCourse;
-  // Reset reveal state unless keepVisible
   if(!keepVisible){
     codesVisible=false;
-    document.getElementById('btn-reveal').style.display='';
-    document.getElementById('admin-pin-inp').style.display='';
-    document.getElementById('admin-pin-inp').value='';
-    document.getElementById('btn-copy-all').style.display='none';
+    var tb=document.getElementById('btn-toggle-codes');
+    if(tb) tb.textContent='\uD83D\uDC41 \u0625\u0638\u0647\u0627\u0631 \u0627\u0644\u0631\u0645\u0648\u0632';
+    var cb=document.getElementById('btn-copy-all');
+    if(cb) cb.style.display='none';
   }
   var sts=getStu(activeCourse);
   var list=document.getElementById('students-list');list.innerHTML='';
@@ -1399,30 +1400,74 @@ function openStudentsModal(keepVisible){
   openOv('ov-students');
 }
 
+// Toggle show/hide codes
+function toggleCodesVisibility(){
+  codesVisible=!codesVisible;
+  var btn=document.getElementById('btn-toggle-codes');
+  if(btn) btn.textContent=codesVisible?'\uD83D\uDE48 \u0625\u062e\u0641\u0627\u0621 \u0627\u0644\u0631\u0645\u0648\u0632':'\uD83D\uDC41 \u0625\u0638\u0647\u0627\u0631 \u0627\u0644\u0631\u0645\u0648\u0632';
+  var copyBtn=document.getElementById('btn-copy-all');
+  if(copyBtn) copyBtn.style.display=codesVisible?'':'none';
+  // Update every code span already in the list
+  document.querySelectorAll('#students-list .code-display').forEach(function(span){
+    var n=span.getAttribute('data-name')||'';
+    span.textContent=codesVisible?(n?getOrCreateCode(n):'\u2014'):'\u2022\u2022\u2022\u2022\u2022\u2022';
+  });
+}
+
+function copyAllCodes(){
+  var lines=['\u0627\u0644\u0637\u0627\u0644\u0628 \u2014 \u0631\u0645\u0632 \u0627\u0644\u062f\u062e\u0648\u0644','\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015'];
+  getStu(activeCourse).forEach(function(s){
+    lines.push(s.name+' : '+(studentCodesMap[s.name]||getOrCreateCode(s.name)));
+  });
+  var txt=lines.join('\n');
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(txt).then(function(){toast('\u2705 \u062a\u0645 \u0646\u0633\u062e \u062c\u0645\u064a\u0639 \u0627\u0644\u0631\u0645\u0648\u0632');});
+  } else {
+    var ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');toast('\u2705 \u062a\u0645 \u0627\u0644\u0646\u0633\u062e');}catch(e){}
+    document.body.removeChild(ta);
+  }
+}
+
+function _showCodesBtn(){
+  if(myRole==='teacher'||myRole==='ta')
+    document.getElementById('btn-manage-codes').style.display='';
+}
+
 function addStuRow(name,id,av,idx){
   var list=document.getElementById('students-list');
   var row=document.createElement('div');
   row.className='er';row.style.cssText='margin-bottom:6px;align-items:center';
   var num=document.createElement('span');num.className='en';num.textContent=(typeof idx==='number'?idx+1:list.children.length+1);
-  // Name input
   var inp=document.createElement('input');inp.type='text';inp.value=name||'';inp.placeholder='\u0627\u0633\u0645 \u0627\u0644\u0637\u0627\u0644\u0628';inp.style.flex='1';
   if(id)inp.setAttribute('data-id',id);if(av)inp.setAttribute('data-av',av);
-  // Auto-generate code when name is entered
-  inp.addEventListener('blur',function(){
-    var n=inp.value.trim();
-    if(n){getOrCreateCode(n);}
-    // Update code display if visible
-    var codeSpan=row.querySelector('.code-display');
-    if(codeSpan&&codesVisible)codeSpan.textContent=n?getOrCreateCode(n):'—';
-  });
-  // Code display (hidden unless admin reveals)
+
+  // Code span — shows •••••• until admin reveals
   var codeWrap=document.createElement('span');
   codeWrap.style.cssText='display:flex;align-items:center;gap:4px;flex-shrink:0';
   var codeSpan=document.createElement('span');
   codeSpan.className='code-display';
-  codeSpan.style.cssText='direction:ltr;font-weight:700;font-size:12px;letter-spacing:1px;color:var(--blue);min-width:60px;text-align:center;background:var(--blue-bg);padding:2px 6px;border-radius:4px';
-  codeSpan.textContent=codesVisible&&name?getOrCreateCode(name):'••••••';
+  codeSpan.setAttribute('data-name', name||'');
+  codeSpan.style.cssText='direction:ltr;font-weight:700;font-size:13px;letter-spacing:2px;color:var(--blue);min-width:70px;text-align:center;background:var(--blue-bg);padding:3px 8px;border-radius:4px;cursor:default';
+  codeSpan.textContent = codesVisible&&name ? getOrCreateCode(name) : '\u2022\u2022\u2022\u2022\u2022\u2022';
   codeWrap.appendChild(codeSpan);
+
+  // When name is typed/changed: generate code, update span
+  inp.addEventListener('blur',function(){
+    var n=inp.value.trim();
+    if(n){
+      var code=getOrCreateCode(n);
+      codeSpan.setAttribute('data-name',n);
+      if(codesVisible) codeSpan.textContent=code;
+    }
+  });
+  inp.addEventListener('input',function(){
+    // Clear code span while typing
+    codeSpan.setAttribute('data-name','');
+    if(codesVisible) codeSpan.textContent='\u2014';
+  });
+
   var del=document.createElement('button');del.textContent='\u062d\u0630\u0641';del.style.cssText='background:var(--red-bg);border:1px solid #d96060;color:var(--red-text);border-radius:4px;cursor:pointer;padding:4px 8px;font-size:11px;font-family:inherit;appearance:none;flex-shrink:0';
   del.onclick=function(){row.remove();renumStu();};
   row.appendChild(num);row.appendChild(inp);row.appendChild(codeWrap);row.appendChild(del);
